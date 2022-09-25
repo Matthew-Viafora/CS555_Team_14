@@ -1,0 +1,112 @@
+0 NOTE Eddie Ahn, Maor Mashiach, Jacob Roessler, Matthew Viafora
+0 HEAD
+1 SOUR Family Echo
+2 WWW http://www.familyecho.com/
+1 FILE My Family
+1 DATE 11 SEP 2022
+1 DEST ANSTFILE
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 SUBM @I1@
+2 NAME mviafora@hotmail.com
+1 SUBN
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME Gabriela /Smith/
+2 GIVN Gabriela
+2 SURN Smith
+2 _MARNM Smith
+1 SEX F
+1 BIRT
+2 DATE 12 OCT 2002
+1 FAMC @F1@
+0 @I2@ INDI
+1 NAME George /Smith/
+2 GIVN George
+2 SURN Smith
+2 _MARNM Smith
+1 SEX M
+1 BIRT
+2 DATE 7 MAR 1958
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Karen /Domingo/
+2 GIVN Karen
+2 SURN Domingo
+2 _MARNM Smith
+1 SEX F
+1 BIRT
+2 DATE 15 OCT 1965
+1 FAMS @F1@
+1 FAMC @F2@
+0 @I4@ INDI
+1 NAME Matthew /Smith/
+2 GIVN Matthew
+2 SURN Smith
+2 _MARNM Smith
+1 SEX M
+1 BIRT
+2 DATE 31 JUL 2001
+1 FAMC @F1@
+0 @I5@ INDI
+1 NAME Bob /Matthews/
+2 GIVN Bob
+2 SURN Matthews
+2 _MARNM Matthews
+1 SEX M
+1 BIRT
+2 DATE 25 DEC 1930
+1 DEAT Y
+2 DATE 10 MAY 1969
+1 FAMS @F2@
+0 @I6@ INDI
+1 NAME Rose /Viafora/
+2 GIVN Rose
+2 SURN Viafora
+2 _MARNM Domingo
+1 SEX F
+1 BIRT
+2 DATE 9 SEP 1933
+1 FAMS @F2@
+1 FAMS @F3@
+0 @I7@ INDI
+1 NAME Jimothy /Domingo/
+2 GIVN Jimothy
+2 SURN Domingo
+2 _MARNM Domingo
+1 SEX M
+1 BIRT
+2 DATE 6 FEB 1950
+1 DEAT Y
+2 DATE 16 APR 2015
+1 FAMS @F3@
+0 @I8@ INDI
+1 NAME Elise /Domingo/
+2 GIVN Elise
+2 SURN Domingo
+2 _MARNM Domingo
+1 SEX F
+1 BIRT
+2 DATE 8 SEP 1970
+1 FAMC @F3@
+0 @F1@ FAM
+1 HUSB @I2@
+1 WIFE @I3@
+1 CHIL @I1@
+1 CHIL @I4@
+1 _CURRENT Y
+1 _PRIMARY Y
+0 @F2@ FAM
+1 HUSB @I5@
+1 WIFE @I6@
+1 CHIL @I3@
+1 _CURRENT N
+1 _PRIMARY N
+0 @F3@ FAM
+1 HUSB @I7@
+1 WIFE @I6@
+1 CHIL @I8@
+1 _CURRENT Y
+1 _PRIMARY Y
+0 TRLR

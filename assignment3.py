@@ -81,7 +81,6 @@ iTable = PrettyTable()
 #print([*individuals.values()][0])
 #print([*families.values()][1])
 
-
 iTable.add_column("ID", [*individuals])
 
 iTable.add_column("Name", list(map(lambda indiv: indiv['NAME'], [*individuals.values()])))
@@ -90,6 +89,7 @@ iTable.add_column("Gender", list(map(lambda indiv: indiv['SEX'], [*individuals.v
 
 iTable.add_column("Birthday", list(map(lambda indiv: indiv['BIRT']['DATE'], [*individuals.values()])))
 
+#Need to fix to adjust for death date
 def calculateAge(indiv):
     dateArray = indiv['BIRT']['DATE'].split(" ")
     birthDate = date(int(dateArray[2]), months[dateArray[1]], int(dateArray[0]))
@@ -122,8 +122,9 @@ fTable.add_column("Wife Name", list(map(lambda fam: 'N/A' if "WIFE" not in fam e
 fTable.add_column("Children", list(map(lambda fam: 'N/A' if "CHIL" not in fam else fam['CHIL'], [*families.values()])) )
 
 
-
+print("Individuals:")
 print(iTable)
+print("Families:")
 print(fTable)
 
 gedcom.close()

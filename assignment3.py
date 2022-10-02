@@ -89,12 +89,29 @@ iTable.add_column("Gender", list(map(lambda indiv: indiv['SEX'], [*individuals.v
 
 iTable.add_column("Birthday", list(map(lambda indiv: indiv['BIRT']['DATE'], [*individuals.values()])))
 
-#Need to fix to adjust for death date
-def calculateAge(indiv):
-    dateArray = indiv['BIRT']['DATE'].split(" ")
-    birthDate = date(int(dateArray[2]), months[dateArray[1]], int(dateArray[0]))
+
+#Turns a date string into a datetime object
+def toDateObj(d):
+    dateArray = d.split(" ")
+    return date(int(dateArray[2]), months[dateArray[1]], int(dateArray[0]))
+
+#Takes give time in between date1 and date2 in years: date2 > date1 
+def timespan(date1, date2):
+    if not isinstance(date1, date):
+        date1 = toDateObj(date1)
+    if not isinstance(date2, date):
+        date2 = toDateObj(date2)
+
     days_in_year = 365.2425   
-    age = int((date.today() - birthDate).days / days_in_year)
+    time = int((date2 - date1).days / days_in_year)
+    return time
+
+#Gives the death of an individual takes into account death date
+#US27
+def calculateAge(indiv):
+    birthDate = toDateObj(indiv['BIRT']['DATE'])
+    compareDate = date.today() if not 'DEAT' in indiv else toDateObj(indiv["DEAT"]["DATE"])
+    age = timespan(birthDate, compareDate)
     return age
 
 iTable.add_column("Age", list(map(lambda indiv: calculateAge( indiv ), [*individuals.values()])))
@@ -126,5 +143,29 @@ print("Individuals:")
 print(iTable)
 print("Families:")
 print(fTable)
+
+# Error Area
+# structure of indiv and fam: dictionary {id1: -> {details1}, id2: {details2} }
+# accumulation array for all errors detecting during looping through individuals and families 
+errors = []
+
+for i, details in individuals.items():
+    #check for errors in individuals
+    
+    #Remove this when code is added to the loop
+    break
+for f, details in families.items():
+    #check for errors in families
+
+    #check for marriage before 14
+    #US10
+    if "MARR" in details:
+        if timespan(individuals[details["HUSB"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14 or timespan(individuals[details["WIFE"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14:
+            errors.append(f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
+
+#Print errors
+print()
+for error in errors:
+    print(error)
 
 gedcom.close()

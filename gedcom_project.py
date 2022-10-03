@@ -101,27 +101,32 @@ iTable.add_column("Birthday", list(
     map(lambda indiv: indiv['BIRT']['DATE'], [*individuals.values()])))
 
 
-#Turns a date string into a datetime object
+# Turns a date string into a datetime object
 def toDateObj(d):
     dateArray = d.split(" ")
     return date(int(dateArray[2]), months[dateArray[1]], int(dateArray[0]))
 
-#Takes give time in between date1 and date2 in years: date2 > date1 
+# Takes give time in between date1 and date2 in years: date2 > date1
+
+
 def timespan(date1, date2):
     if not isinstance(date1, date):
         date1 = toDateObj(date1)
     if not isinstance(date2, date):
         date2 = toDateObj(date2)
 
-    days_in_year = 365.2425   
+    days_in_year = 365.2425
     time = int((date2 - date1).days / days_in_year)
     return time
 
-#Gives the death of an individual takes into account death date
-#US27
+# Gives the death of an individual takes into account death date
+# US27
+
+
 def calculateAge(indiv):
     birthDate = toDateObj(indiv['BIRT']['DATE'])
-    compareDate = date.today() if not 'DEAT' in indiv else toDateObj(indiv["DEAT"]["DATE"])
+    compareDate = date.today() if not 'DEAT' in indiv else toDateObj(
+        indiv["DEAT"]["DATE"])
     age = timespan(birthDate, compareDate)
     return age
 
@@ -129,7 +134,7 @@ def calculateAge(indiv):
 birthBeforeMarriageErrors = []
 
 
-def birthBeforeMarriage(fam):
+def birthBeforeMarriage(fam, individuals):
     husbs = []
     wifes = []
     for family in fam.keys():
@@ -151,6 +156,8 @@ def birthBeforeMarriage(fam):
                 if (days < 0):
                     birthBeforeMarriageErrors.append(
                         [i[0], marriage, birthday, "husband"])
+                    return False
+                    
         for i in wifes:
             if (i[0] == person):
                 marriage = i[1]
@@ -161,6 +168,8 @@ def birthBeforeMarriage(fam):
                 if (days < 0):
                     birthBeforeMarriageErrors.append(
                         [i[0], marriage, birthday, "wife"])
+                    return False
+                    
     return True
 
 
@@ -168,7 +177,7 @@ birthBeforeDeathErrors = []
 
 
 def birthBeforeDeath(indiv):
-    for indiv in individuals.keys():
+    for indiv in indiv.keys():
         person = individuals[indiv]["id"]
         birthday = individuals[indiv]['BIRT']["DATE"]
         birthday = birthday.split(" ")
@@ -182,13 +191,13 @@ def birthBeforeDeath(indiv):
             days = int((deathdate - birthday).days)
             if (days < 0):
                 birthBeforeDeathErrors.append([person, deathdate, birthday])
+                return False
+                
     return True
 
 
-birthBeforeMarriage(families)
+birthBeforeMarriage(families, individuals)
 birthBeforeDeath(individuals)
-
-
 
 
 iTable.add_column("Age", list(
@@ -227,25 +236,29 @@ fTable.add_column("Children", list(map(
 
 # Error Area
 # structure of indiv and fam: dictionary {id1: -> {details1}, id2: {details2} }
-# accumulation array for all errors detecting during looping through individuals and families 
+# accumulation array for all errors detecting during looping through individuals and families
 errors = []
 
-#Testing for Use Case 21: Correct Gender for Role
+# Testing for Use Case 21: Correct Gender for Role
 for family in list(families.values()):
-    if individuals[family['HUSB']]['SEX']!="M":
-        errors.append("ERROR: INDIVIDUAL: US21: Gender of Husband " +individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') '+ "in Family "+family['FAM']+" "+"is female.")
-    if individuals[family['WIFE']]['SEX']!="F":
-        errors.append("ERROR: INDIVIDUAL: US21: Gender of Wife "+individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"in Family "+family['FAM']+" "+"is male.")
+    if individuals[family['HUSB']]['SEX'] != "M":
+        errors.append("ERROR: INDIVIDUAL: US21: Gender of Husband " +
+                      individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') ' + "in Family "+family['FAM']+" "+"is female.")
+    if individuals[family['WIFE']]['SEX'] != "F":
+        errors.append("ERROR: INDIVIDUAL: US21: Gender of Wife " +
+                      individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"in Family "+family['FAM']+" "+"is male.")
 
-#Testing for Use Case 35: List Recent Births
-people=[]
+# Testing for Use Case 35: List Recent Births
+people = []
 for person in list(individuals.values()):
-    birthday=person["BIRT"]["DATE"].split()
-    thirty_days_ago=datetime.today()-timedelta(days=30)
-    datetime_birthday=datetime(int(birthday[2]),int(months[birthday[1]]),int(birthday[0]))
-    if(thirty_days_ago<=datetime_birthday):
+    birthday = person["BIRT"]["DATE"].split()
+    thirty_days_ago = datetime.today()-timedelta(days=30)
+    datetime_birthday = datetime(int(birthday[2]), int(
+        months[birthday[1]]), int(birthday[0]))
+    if(thirty_days_ago <= datetime_birthday):
         people.append(person["NAME"]+" ("+person["id"]+")")
-errors.append("US35: List of people who were born in the last 30 days: "+str(people))
+errors.append(
+    "US35: List of people who were born in the last 30 days: "+str(people))
 
 if (len(birthBeforeMarriageErrors) > 0):
     for i in birthBeforeMarriageErrors:
@@ -262,30 +275,29 @@ if (len(birthBeforeDeathErrors) > 0):
             f"ERROR: INDIVIDUAL: US03 {i[0]} : Died {i[1]} before born {i[2]}")
 
 for i, details in individuals.items():
-    #check for errors in individuals
-    
-    #Remove this when code is added to the loop
+    # check for errors in individuals
+
+    # Remove this when code is added to the loop
     break
 for f, details in families.items():
-    #check for errors in families
+    # check for errors in families
 
-    #check for marriage before 14
-    #US10
+    # check for marriage before 14
+    # US10
     if "MARR" in details:
         if timespan(individuals[details["HUSB"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14 or timespan(individuals[details["WIFE"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14:
-            errors.append(f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
+            errors.append(
+                f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
 
 if __name__ == '__main__':
     print("Individuals:")
     print(iTable)
     print("Families:")
     print(fTable)
-    #Print errors
+    # Print errors
     print()
     for error in errors:
         print(error)
-
-
 
 
 gedcom.close()

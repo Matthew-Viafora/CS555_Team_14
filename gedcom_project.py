@@ -214,12 +214,6 @@ fTable.add_column("Wife Name", list(map(
 fTable.add_column("Children", list(map(
     lambda fam: 'N/A' if "CHIL" not in fam else fam['CHIL'], [*families.values()])))
 
-
-print("Individuals:")
-print(iTable)
-print("Families:")
-print(fTable)
-
 # Error Area
 # structure of indiv and fam: dictionary {id1: -> {details1}, id2: {details2} }
 # accumulation array for all errors detecting during looping through individuals and families 
@@ -253,9 +247,17 @@ for f, details in families.items():
         if timespan(individuals[details["HUSB"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14 or timespan(individuals[details["WIFE"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14:
             errors.append(f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
 
-#Print errors
-print()
-for error in errors:
-    print(error)
+if __name__ == '__main__':
+    print("Individuals:")
+    print(iTable)
+    print("Families:")
+    print(fTable)
+    #Print errors
+    print()
+    for error in errors:
+        print(error)
+
+
+
 
 gedcom.close()

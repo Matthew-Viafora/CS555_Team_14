@@ -7,8 +7,11 @@ import sys
 
 if 'gedcom_unittests' in sys.argv[0]:
     gedcom = open('test_file.ged', "r")
-else:
+elif len(sys.argv) > 1:
     gedcom = open(sys.argv[1], "r")
+else:
+    sys.exit("Please supply gedcom filename as program argument!")
+
 
 valid = {"INDI": True, "NAME": True, "SEX": True, "BIRT": True, "DEAT": True,
          "FAMC": True, "FAMS": True, "FAM": True, "MARR": True, "HUSB": True,

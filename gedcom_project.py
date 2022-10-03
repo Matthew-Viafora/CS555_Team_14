@@ -5,7 +5,10 @@ from datetime import datetime
 from datetime import timedelta
 import sys
 
-gedcom = open(sys.argv[1], "r")
+if 'gedcom_unittests' in sys.argv[0]:
+    gedcom = open('test_file.ged', "r")
+else:
+    gedcom = open(sys.argv[1], "r")
 
 valid = {"INDI": True, "NAME": True, "SEX": True, "BIRT": True, "DEAT": True,
          "FAMC": True, "FAMS": True, "FAM": True, "MARR": True, "HUSB": True,

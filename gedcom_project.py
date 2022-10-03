@@ -3,8 +3,9 @@ from prettytable import PrettyTable
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
+import sys
 
-gedcom = open("test_file.ged", "r")
+gedcom = open(sys.argv[1], "r")
 
 valid = {"INDI": True, "NAME": True, "SEX": True, "BIRT": True, "DEAT": True,
          "FAMC": True, "FAMS": True, "FAM": True, "MARR": True, "HUSB": True,
@@ -226,9 +227,9 @@ errors = []
 #Testing for Use Case 21: Correct Gender for Role
 for family in list(families.values()):
     if individuals[family['HUSB']]['SEX']!="M":
-        errors.append("ERROR: INDIVIDUAL: US21: Gender of "+individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') '+"needs to be male.")
+        errors.append("ERROR: INDIVIDUAL: US21: Gender of Husband " +individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') '+ "in Family "+family['FAM']+" "+"is female.")
     if individuals[family['WIFE']]['SEX']!="F":
-        errors.append("ERROR: INDIVIDUAL: US21: Gender of "+individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"needs to be female.")
+        errors.append("ERROR: INDIVIDUAL: US21: Gender of Wife "+individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"in Family "+family['FAM']+" "+"is male.")
 
 #Testing for Use Case 35: List Recent Births
 people=[]
@@ -237,22 +238,22 @@ for person in list(individuals.values()):
     thirty_days_ago=datetime.today()-timedelta(days=30)
     datetime_birthday=datetime(int(birthday[2]),int(months[birthday[1]]),int(birthday[0]))
     if(thirty_days_ago<=datetime_birthday):
-        people.append(person["NAME"])
+        people.append(person["NAME"]+" ("+person["id"]+")")
 errors.append("US35: List of people who were born in the last 30 days: "+str(people))
 
 if (len(birthBeforeMarriageErrors) > 0):
     for i in birthBeforeMarriageErrors:
         if (i[3] == "husband"):
             errors.append(
-                f"ERROR: FAMILY: {i[0]} : Husband's birthdate {i[2]} occurs after marriage date {i[1]}")
+                f"ERROR: FAMILY: US02: {i[0]} : Husband's birthdate {i[2]} occurs after marriage date {i[1]}")
         elif (i[3] == "wife"):
             errors.append(
-                f"ERROR: FAMILY: {i[0]} : Wife's birthdate {i[2]} occurs after marriage date {i[1]}")
+                f"ERROR: FAMILY: US02: {i[0]} : Wife's birthdate {i[2]} occurs after marriage date {i[1]}")
 
 if (len(birthBeforeDeathErrors) > 0):
     for i in birthBeforeDeathErrors:
         errors.append(
-            f"ERROR: INDIVIDUAL: {i[0]} : Died {i[1]} before born {i[2]}")
+            f"ERROR: INDIVIDUAL: US03 {i[0]} : Died {i[1]} before born {i[2]}")
 
 for i, details in individuals.items():
     #check for errors in individuals

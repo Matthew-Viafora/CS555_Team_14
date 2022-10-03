@@ -1,6 +1,8 @@
 # Completing US02 and US03
 from prettytable import PrettyTable
 from datetime import date
+from datetime import datetime
+from datetime import timedelta
 
 gedcom = open("test_file.ged", "r")
 
@@ -180,6 +182,8 @@ birthBeforeMarriage(families)
 birthBeforeDeath(individuals)
 
 
+
+
 iTable.add_column("Age", list(
     map(lambda indiv: calculateAge(indiv), [*individuals.values()])))
 
@@ -218,6 +222,23 @@ fTable.add_column("Children", list(map(
 # structure of indiv and fam: dictionary {id1: -> {details1}, id2: {details2} }
 # accumulation array for all errors detecting during looping through individuals and families 
 errors = []
+
+#Testing for Use Case 21: Correct Gender for Role
+for family in list(families.values()):
+    if individuals[family['HUSB']]['SEX']!="M":
+        errors.append("ERROR: INDIVIDUAL: US21: Gender of "+individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') '+"needs to be male.")
+    if individuals[family['WIFE']]['SEX']!="F":
+        errors.append("ERROR: INDIVIDUAL: US21: Gender of "+individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"needs to be female.")
+
+#Testing for Use Case 35: List Recent Births
+people=[]
+for person in list(individuals.values()):
+    birthday=person["BIRT"]["DATE"].split()
+    thirty_days_ago=datetime.today()-timedelta(days=30)
+    datetime_birthday=datetime(int(birthday[2]),int(months[birthday[1]]),int(birthday[0]))
+    if(thirty_days_ago<=datetime_birthday):
+        people.append(person["NAME"])
+errors.append("US35: List of people who were born in the last 30 days: "+str(people))
 
 if (len(birthBeforeMarriageErrors) > 0):
     for i in birthBeforeMarriageErrors:

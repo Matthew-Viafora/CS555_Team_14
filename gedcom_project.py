@@ -196,7 +196,7 @@ def birthBeforeDeath(indiv):
     return True
 
 # User Story 08
-def birthBeforeMarriageOfParents(family):
+def birthBeforeMarriageOfParents(family, individuals):
     if 'MARR' in family:
         for child in family["CHIL"]:
             if toDateObj(family['MARR']['DATE']) > toDateObj(individuals[child]["BIRT"]["DATE"]):
@@ -208,14 +208,14 @@ def birthBeforeMarriageOfParents(family):
 
 
 # User Story 09
-def birthAfterDeathOfParents(family):
+def birthAfterDeathOfParents(family, individuals):
     for child in family["CHIL"]:
         father_death_date = "N/A" if not 'DEAT' in individuals[family["HUSB"]] else individuals[family["HUSB"]]['DEAT']['DATE']
         mother_death_date = "N/A" if not 'DEAT' in individuals[family["WIFE"]] else individuals[family["WIFE"]]['DEAT']['DATE']
 
         if father_death_date != 'N/A':
             # child must be born before 9 months after death of father
-            if toDateObj(father_death_date + relativedelta(months=+9)) < toDateObj(individuals[child]["BIRT"]["DATE"]):
+            if toDateObj(father_death_date) + relativedelta(months=+9) < toDateObj(individuals[child]["BIRT"]["DATE"]):
                 return True
 
         if mother_death_date != 'N/A':
@@ -325,13 +325,13 @@ for f, details in families.items():
     # check for errors in families
 
     #US 08
-    if birthBeforeMarriageOfParents(details):
+    if birthBeforeMarriageOfParents(details, individuals):
             errors.append(
                 f"ERROR: FAMILY: US08: {f} marriage after birth of child")
     
     #Makes sure a child couldnt have been born after their parents have died
     #US 09
-    if birthAfterDeathOfParents(details):
+    if birthAfterDeathOfParents(details, individuals):
             errors.append(
                 f"ERROR: FAMILY: US09: {f} birth of child after death of parents")
     # check for marriage before 14

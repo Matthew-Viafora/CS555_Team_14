@@ -3,6 +3,7 @@ from prettytable import PrettyTable
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 import sys
 
 if 'gedcom_unittests' in sys.argv[0]:
@@ -195,28 +196,21 @@ def birthBeforeDeath(indiv):
     return True
 
 # User Story 08
-def birthBeforeMarriageOfParents(families, individuals):
-    for family in families.keys():
-        if families[family]['MARR']:
-            for indiv in individuals:
-                person = individuals[indiv]['id']
-                bday = individuals[indiv]['BIRT']
-                children = families[family]['CHIL']
-                print(bday, person)
-                div_date = families[family]['DIV']
-                if person in children and div_date is not None:
-                    if bday < families[family]['MARR']:
-                        print('error placeholder for child born before marriage')
-                        return False
-                    if relativedelta(bday, div_date).months + 9:
-                        print('error placeholder for child born after div')
-                        return False
-    return True
+def birthBeforeMarriageOfParents(family):
+    if 'MARR' in family:
+        for child in family["CHIL"]:
+            if toDateObj(family['MARR']['DATE']) > toDateObj(individuals[child]["BIRT"]["DATE"]):
+                return True
+            if 'DIV' in family:
+                if (toDateObj(family['DIV']['DATE']) + relativedelta(months=+9)) < toDateObj(individuals[child]["BIRT"]["DATE"]):
+                    return True
+    return False
 
 
 
 birthBeforeMarriage(families, individuals)
 birthBeforeDeath(individuals)
+
 
 
 # Testing for Use Case 21: Correct Gender for Role
@@ -310,6 +304,10 @@ for i, details in individuals.items():
     break
 for f, details in families.items():
     # check for errors in families
+
+    if birthBeforeMarriageOfParents(details):
+            errors.append(
+                f"ERROR: FAMILY: US08: {f} marriage after birth of child")
 
     # check for marriage before 14
     # US10

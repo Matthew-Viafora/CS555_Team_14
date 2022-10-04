@@ -214,10 +214,12 @@ def birthAfterDeathOfParents(family):
         mother_death_date = "N/A" if not 'DEAT' in individuals[family["WIFE"]] else individuals[family["WIFE"]]['DEAT']['DATE']
 
         if father_death_date != 'N/A':
-            if toDateObj(father_death_date) < toDateObj(individuals[child]["BIRT"]["DATE"]):
+            # child must be born before 9 months after death of father
+            if toDateObj(father_death_date + relativedelta(months=+9)) < toDateObj(individuals[child]["BIRT"]["DATE"]):
                 return True
 
         if mother_death_date != 'N/A':
+            # child must be born before death of mother
             if toDateObj(mother_death_date) < toDateObj(individuals[child]["BIRT"]["DATE"]):
                 return True
 

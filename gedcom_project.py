@@ -194,6 +194,26 @@ def birthBeforeDeath(indiv):
                 
     return True
 
+# User Story 08
+def birthBeforeMarriageOfParents(families, individuals):
+    for family in families.keys():
+        if families[family]['MARR']:
+            for indiv in individuals:
+                person = individuals[indiv]['id']
+                bday = individuals[indiv]['BIRT']
+                children = families[family]['CHIL']
+                print(bday, person)
+                div_date = families[family]['DIV']
+                if person in children and div_date is not None:
+                    if bday < families[family]['MARR']:
+                        print('error placeholder for child born before marriage')
+                        return False
+                    if relativedelta(bday, div_date).months + 9:
+                        print('error placeholder for child born after div')
+                        return False
+    return True
+
+
 
 birthBeforeMarriage(families, individuals)
 birthBeforeDeath(individuals)

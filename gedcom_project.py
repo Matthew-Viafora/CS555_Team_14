@@ -207,6 +207,23 @@ def birthBeforeMarriageOfParents(family):
     return False
 
 
+# User Story 09
+def birthAfterDeathOfParents(family):
+    for child in family["CHIL"]:
+        father_death_date = "N/A" if not 'DEAT' in individuals[family["HUSB"]] else individuals[family["HUSB"]]['DEAT']['DATE']
+        mother_death_date = "N/A" if not 'DEAT' in individuals[family["WIFE"]] else individuals[family["WIFE"]]['DEAT']['DATE']
+
+        if father_death_date != 'N/A':
+            if toDateObj(father_death_date) < toDateObj(individuals[child]["BIRT"]["DATE"]):
+                return True
+
+        if mother_death_date != 'N/A':
+            if toDateObj(mother_death_date) < toDateObj(individuals[child]["BIRT"]["DATE"]):
+                return True
+
+    return False
+
+
 
 birthBeforeMarriage(families, individuals)
 birthBeforeDeath(individuals)
@@ -305,10 +322,16 @@ for i, details in individuals.items():
 for f, details in families.items():
     # check for errors in families
 
+    #US 08
     if birthBeforeMarriageOfParents(details):
             errors.append(
                 f"ERROR: FAMILY: US08: {f} marriage after birth of child")
-
+    
+    #Makes sure a child couldnt have been born after their parents have died
+    #US 09
+    if birthAfterDeathOfParents(details):
+            errors.append(
+                f"ERROR: FAMILY: US09: {f} birth of child after death of parents")
     # check for marriage before 14
     # US10
     if "MARR" in details:

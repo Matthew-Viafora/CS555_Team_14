@@ -175,7 +175,6 @@ def birthBeforeMarriage(fam, individuals):
 
 birthBeforeDeathErrors = []
 
-
 def birthBeforeDeath(indiv):
     for indiv in indiv.keys():
         person = individuals[indiv]["id"]
@@ -198,6 +197,33 @@ def birthBeforeDeath(indiv):
 
 birthBeforeMarriage(families, individuals)
 birthBeforeDeath(individuals)
+
+
+# Testing for Use Case 21: Correct Gender for Role
+def correct_gender(families,individuals):
+    genderErrors = []
+    for family in list(families.values()):
+        if individuals[family['HUSB']]['SEX'] != "M":
+            genderErrors.append("ERROR: INDIVIDUAL: US21: Gender of Husband " +
+                        individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') ' + "in Family "+family['FAM']+" "+"is female.")
+        if individuals[family['WIFE']]['SEX'] != "F":
+            genderErrors.append("ERROR: INDIVIDUAL: US21: Gender of Wife " +
+                        individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"in Family "+family['FAM']+" "+"is male.")
+    return genderErrors
+
+
+# Testing for Use Case 35: List Recent Births
+def recent_births(families,individuals):
+    people = []
+    for person in list(individuals.values()):
+        birthday = person["BIRT"]["DATE"].split()
+        thirty_days_ago = datetime.today()-timedelta(days=30)
+        datetime_birthday = datetime(int(birthday[2]), int(
+            months[birthday[1]]), int(birthday[0]))
+        if(thirty_days_ago <= datetime_birthday):
+            people.append(person["NAME"]+" ("+person["id"]+")")
+    errors.append("US35: List of people who were born in the last 30 days: "+str(people))
+    return people
 
 
 iTable.add_column("Age", list(
@@ -237,28 +263,11 @@ fTable.add_column("Children", list(map(
 # Error Area
 # structure of indiv and fam: dictionary {id1: -> {details1}, id2: {details2} }
 # accumulation array for all errors detecting during looping through individuals and families
-errors = []
+errors=[]
+genderErrors=correct_gender(families, individuals)
+recent_births(families, individuals)
+errors=errors+genderErrors
 
-# Testing for Use Case 21: Correct Gender for Role
-for family in list(families.values()):
-    if individuals[family['HUSB']]['SEX'] != "M":
-        errors.append("ERROR: INDIVIDUAL: US21: Gender of Husband " +
-                      individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') ' + "in Family "+family['FAM']+" "+"is female.")
-    if individuals[family['WIFE']]['SEX'] != "F":
-        errors.append("ERROR: INDIVIDUAL: US21: Gender of Wife " +
-                      individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"in Family "+family['FAM']+" "+"is male.")
-
-# Testing for Use Case 35: List Recent Births
-people = []
-for person in list(individuals.values()):
-    birthday = person["BIRT"]["DATE"].split()
-    thirty_days_ago = datetime.today()-timedelta(days=30)
-    datetime_birthday = datetime(int(birthday[2]), int(
-        months[birthday[1]]), int(birthday[0]))
-    if(thirty_days_ago <= datetime_birthday):
-        people.append(person["NAME"]+" ("+person["id"]+")")
-errors.append(
-    "US35: List of people who were born in the last 30 days: "+str(people))
 
 if (len(birthBeforeMarriageErrors) > 0):
     for i in birthBeforeMarriageErrors:

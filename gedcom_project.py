@@ -1,4 +1,5 @@
 # Completing US02 and US03
+from more_itertools import ilen
 from prettytable import PrettyTable
 from datetime import date
 from datetime import datetime
@@ -39,6 +40,7 @@ families = {}
 currentInd = None
 currentFam = None
 dependent = ''
+duplicates = []
 for line in gedcom:
     if currentFam:
         currentInd = None
@@ -54,9 +56,15 @@ for line in gedcom:
         tag = elements[2]
         value = elements[1]
         if tag == 'INDI':
+            #duplicate id checking
+            if value in individuals:
+                value= 'dup ' + value
             individuals[value] = {"id": value}
             currentInd = value
         if tag == 'FAM':
+            #duplicate id checking
+            if value in families:
+                value= 'dup ' + value
             families[value] = {"id": value}
             currentFam = value
 
@@ -245,6 +253,16 @@ def correct_gender(families,individuals):
     return genderErrors
 
 
+# Testing for Use Case 22: Unique IDs
+def unique_ids(individuals):
+    for i, details in individuals.items():
+        if 'dup' in i:
+            return False
+    return True
+# Testing for Use Case 29: List Diseased
+def get_deceased(individuals):
+    return [i for i, details in individuals.items() if 'DEAT' in details ]
+
 # Testing for Use Case 35: List Recent Births
 def recent_births(families,individuals):
     people = []
@@ -296,10 +314,17 @@ fTable.add_column("Children", list(map(
 # Error Area
 # structure of indiv and fam: dictionary {id1: -> {details1}, id2: {details2} }
 # accumulation array for all errors detecting during looping through individuals and families
+
 errors=[]
 genderErrors=correct_gender(families, individuals)
+# Testing for Use Case 29: List Diseased
+deceased = get_deceased(individuals)
+if(len(deceased)):
+    errors.append(f"US29: List of all deceased individuals: {', '.join(deceased)}")
+# Testing for Use Case 35: List Recent Births
 recent_births(families, individuals)
 errors=errors+genderErrors
+
 
 
 if (len(birthBeforeMarriageErrors) > 0):
@@ -315,6 +340,10 @@ if (len(birthBeforeDeathErrors) > 0):
     for i in birthBeforeDeathErrors:
         errors.append(
             f"ERROR: INDIVIDUAL: US03 {i[0]} : Died {i[1]} before born {i[2]}")
+
+# Testing for Use Case 22: Unique IDs
+if(len(duplicates)):
+    errors.append(f"ERROR: INDIVIDUAL/FAMILY: US23: Duplicate IDs found: {', '.join(duplicates)}")
 
 for i, details in individuals.items():
     # check for errors in individuals

@@ -1,4 +1,3 @@
-# Completing US02 and US03
 from more_itertools import ilen
 from prettytable import PrettyTable
 from datetime import date
@@ -56,15 +55,15 @@ for line in gedcom:
         tag = elements[2]
         value = elements[1]
         if tag == 'INDI':
-            #duplicate id checking
+            # duplicate id checking
             if value in individuals:
-                value= 'dup ' + value
+                value = 'dup ' + value
             individuals[value] = {"id": value}
             currentInd = value
         if tag == 'FAM':
-            #duplicate id checking
+            # duplicate id checking
             if value in families:
-                value= 'dup ' + value
+                value = 'dup ' + value
             families[value] = {"id": value}
             currentFam = value
 
@@ -142,6 +141,8 @@ def calculateAge(indiv):
 
 birthBeforeMarriageErrors = []
 
+# US 02
+
 
 def birthBeforeMarriage(fam, individuals):
     husbs = []
@@ -166,7 +167,7 @@ def birthBeforeMarriage(fam, individuals):
                     birthBeforeMarriageErrors.append(
                         [i[0], marriage, birthday, "husband"])
                     return False
-                    
+
         for i in wifes:
             if (i[0] == person):
                 marriage = i[1]
@@ -178,11 +179,14 @@ def birthBeforeMarriage(fam, individuals):
                     birthBeforeMarriageErrors.append(
                         [i[0], marriage, birthday, "wife"])
                     return False
-                    
+
     return True
 
 
 birthBeforeDeathErrors = []
+
+# US03
+
 
 def birthBeforeDeath(indiv):
     for indiv in indiv.keys():
@@ -200,8 +204,68 @@ def birthBeforeDeath(indiv):
             if (days < 0):
                 birthBeforeDeathErrors.append([person, deathdate, birthday])
                 return False
-                
+
     return True
+
+
+birthBeforeMarriage(families, individuals)
+birthBeforeDeath(individuals)
+
+
+# US04
+marriageBeforeDivorceErrors = []
+
+
+def marriageBeforeDivorce(fam):
+    husbs = []
+    wifes = []
+    for family in fam.keys():
+        try:
+            if (fam[family]['DIV']):
+                divorce = fam[family]['DIV']['DATE']
+                marriage = fam[family]['MARR']['DATE']
+                if toDateObj(divorce) < toDateObj(marriage):
+                    marriageBeforeDivorceErrors.append(
+                        [fam[family]['FAM'], toDateObj(divorce), toDateObj(marriage)])
+        except:
+            continue
+
+
+marriageBeforeDeathErrors = []
+
+
+def marriageBeforeDeath(fam, individuals):
+    husbs = []
+    wifes = []
+    for family in fam.keys():
+        husbs.append([fam[family]['HUSB'], fam[family]['MARR']['DATE']])
+        wifes.append([fam[family]['WIFE'], fam[family]['MARR']['DATE']])
+    for indiv in individuals.keys():
+        person = individuals[indiv]["id"]
+        try:
+            deathdate = toDateObj(individuals[indiv]['DEAT']["DATE"])
+            for i in husbs:
+                if (i[0] == person):
+                    marriage = toDateObj(i[1])
+                    if (deathdate < marriage):
+                        marriageBeforeDeathErrors.append(
+                            [i[0], marriage, deathdate, "husband"])
+                        return False
+            for i in wifes:
+                if (i[0] == person):
+                    marriage = toDateObj(i[1])
+                    if (deathdate < marriage):
+                        marriageBeforeDeathErrors.append(
+                            [i[0], marriage, deathdate, "wife"])
+                        return False
+
+        except:
+            continue
+
+
+marriageBeforeDivorce(families)
+marriageBeforeDeath(families, individuals)
+
 
 # User Story 08
 def birthBeforeMarriageOfParents(family, individuals):
@@ -218,8 +282,10 @@ def birthBeforeMarriageOfParents(family, individuals):
 # User Story 09
 def birthAfterDeathOfParents(family, individuals):
     for child in family["CHIL"]:
-        father_death_date = "N/A" if not 'DEAT' in individuals[family["HUSB"]] else individuals[family["HUSB"]]['DEAT']['DATE']
-        mother_death_date = "N/A" if not 'DEAT' in individuals[family["WIFE"]] else individuals[family["WIFE"]]['DEAT']['DATE']
+        father_death_date = "N/A" if not 'DEAT' in individuals[family["HUSB"]
+                                                               ] else individuals[family["HUSB"]]['DEAT']['DATE']
+        mother_death_date = "N/A" if not 'DEAT' in individuals[family["WIFE"]
+                                                               ] else individuals[family["WIFE"]]['DEAT']['DATE']
 
         if father_death_date != 'N/A':
             # child must be born before 9 months after death of father
@@ -234,22 +300,16 @@ def birthAfterDeathOfParents(family, individuals):
     return False
 
 
-
-birthBeforeMarriage(families, individuals)
-birthBeforeDeath(individuals)
-
-
-
 # Testing for Use Case 21: Correct Gender for Role
-def correct_gender(families,individuals):
+def correct_gender(families, individuals):
     genderErrors = []
     for family in list(families.values()):
         if individuals[family['HUSB']]['SEX'] != "M":
             genderErrors.append("ERROR: INDIVIDUAL: US21: Gender of Husband " +
-                        individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') ' + "in Family "+family['FAM']+" "+"is female.")
+                                individuals[family['HUSB']]['NAME']+' ('+family['HUSB']+') ' + "in Family "+family['FAM']+" "+"is female.")
         if individuals[family['WIFE']]['SEX'] != "F":
             genderErrors.append("ERROR: INDIVIDUAL: US21: Gender of Wife " +
-                        individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"in Family "+family['FAM']+" "+"is male.")
+                                individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"in Family "+family['FAM']+" "+"is male.")
     return genderErrors
 
 
@@ -260,11 +320,15 @@ def unique_ids(individuals):
             return False
     return True
 # Testing for Use Case 29: List Diseased
+
+
 def get_deceased(individuals):
-    return [i for i, details in individuals.items() if 'DEAT' in details ]
+    return [i for i, details in individuals.items() if 'DEAT' in details]
 
 # Testing for Use Case 35: List Recent Births
-def recent_births(families,individuals):
+
+
+def recent_births(families, individuals):
     people = []
     for person in list(individuals.values()):
         birthday = person["BIRT"]["DATE"].split()
@@ -273,7 +337,8 @@ def recent_births(families,individuals):
             months[birthday[1]]), int(birthday[0]))
         if(thirty_days_ago <= datetime_birthday):
             people.append(person["NAME"]+" ("+person["id"]+")")
-    errors.append("US35: List of people who were born in the last 30 days: "+str(people))
+    errors.append(
+        "US35: List of people who were born in the last 30 days: "+str(people))
     return people
 
 
@@ -315,16 +380,16 @@ fTable.add_column("Children", list(map(
 # structure of indiv and fam: dictionary {id1: -> {details1}, id2: {details2} }
 # accumulation array for all errors detecting during looping through individuals and families
 
-errors=[]
-genderErrors=correct_gender(families, individuals)
+errors = []
+genderErrors = correct_gender(families, individuals)
 # Testing for Use Case 29: List Diseased
 deceased = get_deceased(individuals)
 if(len(deceased)):
-    errors.append(f"US29: List of all deceased individuals: {', '.join(deceased)}")
+    errors.append(
+        f"US29: List of all deceased individuals: {', '.join(deceased)}")
 # Testing for Use Case 35: List Recent Births
 recent_births(families, individuals)
-errors=errors+genderErrors
-
+errors = errors+genderErrors
 
 
 if (len(birthBeforeMarriageErrors) > 0):
@@ -341,9 +406,25 @@ if (len(birthBeforeDeathErrors) > 0):
         errors.append(
             f"ERROR: INDIVIDUAL: US03 {i[0]} : Died {i[1]} before born {i[2]}")
 
+if (len(marriageBeforeDivorceErrors) > 0):
+    for i in marriageBeforeDivorceErrors:
+        errors.append(
+            f"ERROR: FAMILY: US04 {i[0]} : Divorced {i[1]} before married {i[2]}")
+
+if (len(marriageBeforeDeathErrors) > 0):
+    for i in marriageBeforeDeathErrors:
+        if (i[3] == 'husband'):
+            errors.append(
+                f"ERROR: FAMILY: US05 {i[0]} : Married {i[2]} after husband's death on {i[1]}")
+        elif (i[3] == 'wife'):
+            errors.append(
+                f"ERROR: FAMILY: US05 {i[0]} : Married {i[2]} after wife's death on {i[1]}")
+
+
 # Testing for Use Case 22: Unique IDs
 if(len(duplicates)):
-    errors.append(f"ERROR: INDIVIDUAL/FAMILY: US23: Duplicate IDs found: {', '.join(duplicates)}")
+    errors.append(
+        f"ERROR: INDIVIDUAL/FAMILY: US23: Duplicate IDs found: {', '.join(duplicates)}")
 
 for i, details in individuals.items():
     # check for errors in individuals
@@ -353,16 +434,16 @@ for i, details in individuals.items():
 for f, details in families.items():
     # check for errors in families
 
-    #US 08
+    # US 08
     if birthBeforeMarriageOfParents(details, individuals):
-            errors.append(
-                f"ERROR: FAMILY: US08: {f} marriage after birth of child")
-    
-    #Makes sure a child couldnt have been born after their parents have died
-    #US 09
+        errors.append(
+            f"ERROR: FAMILY: US08: {f} marriage after birth of child")
+
+    # Makes sure a child couldnt have been born after their parents have died
+    # US 09
     if birthAfterDeathOfParents(details, individuals):
-            errors.append(
-                f"ERROR: FAMILY: US09: {f} birth of child after death of parents")
+        errors.append(
+            f"ERROR: FAMILY: US09: {f} birth of child after death of parents")
     # check for marriage before 14
     # US10
     if "MARR" in details:

@@ -486,6 +486,22 @@ for f, details in families.items():
             errors.append(
                 f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
 
+    # US12
+    # parents not too old - Mother should be less than 60 years older than her children and faher should be less than 80 years older than his children
+    if "CHIL" in details:
+        for child in details["CHIL"]:
+            t = timespan(individuals[details["HUSB"]]["BIRT"]
+                         ["DATE"], individuals[child]["BIRT"]["DATE"])
+            if t > 80:
+                errors.append(
+                    f"ERROR: FAMILY: US12: {f} father is more than 80 years older than the child {child}")
+            t = timespan(individuals[details["WIFE"]]["BIRT"]
+                         ["DATE"], individuals[child]["BIRT"]["DATE"])
+            if t > 60:
+                errors.append(
+                    f"ERROR: FAMILY: US12: {f} mother is more than 60 years older than the child {child}")
+
+
 if __name__ == '__main__':
     print("Individuals:")
     print(iTable)

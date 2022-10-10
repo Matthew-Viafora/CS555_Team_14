@@ -326,8 +326,6 @@ def get_deceased(individuals):
     return [i for i, details in individuals.items() if 'DEAT' in details]
 
 # Testing for Use Case 35: List Recent Births
-
-
 def recent_births(families, individuals):
     people = []
     for person in list(individuals.values()):
@@ -340,6 +338,37 @@ def recent_births(families, individuals):
     errors.append(
         "US35: List of people who were born in the last 30 days: "+str(people))
     return people
+
+
+# Testing for Use Case 36: List Recent Deaths
+def recent_deaths(individuals):
+    people = []
+    for indiv in individuals.keys():
+        if ("DEAT" in individuals[indiv]):
+            deathdate = individuals[indiv]['DEAT']["DATE"]
+            deathdate = deathdate.split(" ")
+            thirty_days_ago = datetime.today()-timedelta(days=30)
+            datetime_birthday = datetime(int(deathdate[2]), int(months[deathdate[1]]), int(deathdate[0]))
+            if(thirty_days_ago <= datetime_birthday):
+                people.append(individuals[indiv]["NAME"]+" ("+indiv+")")
+    errors.append("US36: List of people who died in the last 30 days: "+str(people))
+    return people
+
+#Testing for Use Case 38: List upcoming birthdays
+
+def upcoming_birthdays(individuals):
+    people = []
+    for person in list(individuals.values()):
+        birthday = person["BIRT"]["DATE"].split()
+        thirty_days_after=datetime.today()+timedelta(days=30)
+        datetime_birthday = datetime(datetime.now().year, int(
+            months[birthday[1]]), int(birthday[0]))
+        if(datetime.today() <= datetime_birthday and datetime_birthday<=thirty_days_after):
+            people.append(person["NAME"]+" ("+person["id"]+")")
+    errors.append(
+        "US35: List of people who have an upcoming birthday in the next 30 days: "+str(people))
+    return people
+
 
 
 iTable.add_column("Age", list(
@@ -389,6 +418,12 @@ if(len(deceased)):
         f"US29: List of all deceased individuals: {', '.join(deceased)}")
 # Testing for Use Case 35: List Recent Births
 recent_births(families, individuals)
+
+#Testing for Use Case 36: List Recent Deaths
+recent_deaths(individuals)
+
+#Testing for Use Case 38: List Upcoming Birthdays
+upcoming_birthdays(individuals)
 errors = errors+genderErrors
 
 

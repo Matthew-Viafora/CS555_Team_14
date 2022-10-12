@@ -67,7 +67,7 @@ class TestGedcom(unittest.TestCase):
         family = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}, '@F2@': {'id': '@F2@', 'FAM': '@F2@', 'HUSB': '@I5@', 'WIFE': '@I6@', 'CHIL': [
             '@I3@'], 'MARR': {'DATE': '4 JUL 2001'}, 'DATE': '6 MAR 1969', 'DIV': {'DATE': '6 MAR 1969'}}, '@F3@': {'id': '@F3@', 'FAM': '@F3@', 'HUSB': '@I7@', 'WIFE': '@I6@', 'CHIL': ['@I8@'], 'MARR': {'DATE': '7 JUL 1970'}, 'DATE': '7 JUL 1970', 'TRLR': ''}}
         result = gedcom_project.birthBeforeMarriage(family, individuals)
-        self.assertEqual(result, True)
+        self.assertEqual(result, False)
 
     # Tests for US04
     def test_death_before_birth1(self):
@@ -105,7 +105,7 @@ class TestGedcom(unittest.TestCase):
         'id': '@I5@', 'INDI': '@I5@', 'NAME': 'Bob /Matthews/', 'SEX': 'M', 'BIRT': {'DATE': '4 JUL 1954'}, 'DATE': '10 MAY 1969', 'DEAT': {'DATE': '10 MAY 1969'}, 'FAMS': '@F2@'}, '@I6@': {'id': '@I6@', 'INDI': '@I6@', 'NAME': 'Rose /Viafora/', 'SEX': 'F', 'BIRT': {'DATE': '9 SEP 1933'}, 'DATE': '9 SEP 1933', 'FAMS': '@F3@'}, '@I7@': {'id': '@I7@', 'INDI': '@I7@', 'NAME': 'Jimothy /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '6 FEB 1950'}, 'DATE': '16 APR 2015', 'DEAT': {'DATE': '16 APR 2015'}, 'FAMS': '@F3@'}, '@I8@': {'id': '@I8@', 'INDI': '@I8@', 'NAME': 'Elise /Domingo/', 'SEX': 'F', 'BIRT': {'DATE': '8 SEP 1970'}, 'DATE': '8 SEP 1970', 'FAMC': '@F3@', 'FAM': '@F1@'}}
         families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}, '@F2@': {'id': '@F2@', 'FAM': '@F2@', 'HUSB': '@I5@', 'WIFE': '@I6@', 'CHIL': [
         '@I3@'], 'MARR': {'DATE': '4 JUL 2001'}, 'DATE': '6 MAR 1969', 'DIV': {'DATE': '6 MAR 1969'}}, '@F3@': {'id': '@F3@', 'FAM': '@F3@', 'HUSB': '@I7@', 'WIFE': '@I6@', 'CHIL': ['@I8@'], 'MARR': {'DATE': '7 JUL 1970'}, 'DATE': '7 JUL 1970', 'TRLR': ''}}
-        result=gedcom_project.recent_births(families, individuals)
+        result=gedcom_project.recent_births(individuals)
         self.assertEqual(result,[])
 
     def test_recent_birth2(self):
@@ -113,7 +113,7 @@ class TestGedcom(unittest.TestCase):
         'id': '@I5@', 'INDI': '@I5@', 'NAME': 'Bob /Matthews/', 'SEX': 'M', 'BIRT': {'DATE': '2 OCT 2022'}, 'DATE': '10 MAY 1969', 'DEAT': {'DATE': '10 MAY 1969'}, 'FAMS': '@F2@'}, '@I6@': {'id': '@I6@', 'INDI': '@I6@', 'NAME': 'Rose /Viafora/', 'SEX': 'F', 'BIRT': {'DATE': '9 SEP 1933'}, 'DATE': '9 SEP 1933', 'FAMS': '@F3@'}, '@I7@': {'id': '@I7@', 'INDI': '@I7@', 'NAME': 'Jimothy /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '6 FEB 1950'}, 'DATE': '16 APR 2015', 'DEAT': {'DATE': '16 APR 2015'}, 'FAMS': '@F3@'}, '@I8@': {'id': '@I8@', 'INDI': '@I8@', 'NAME': 'Elise /Domingo/', 'SEX': 'F', 'BIRT': {'DATE': '8 SEP 1970'}, 'DATE': '8 SEP 1970', 'FAMC': '@F3@', 'FAM': '@F1@'}}
         families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}, '@F2@': {'id': '@F2@', 'FAM': '@F2@', 'HUSB': '@I5@', 'WIFE': '@I6@', 'CHIL': [
         '@I3@'], 'MARR': {'DATE': '4 JUL 2001'}, 'DATE': '6 MAR 1969', 'DIV': {'DATE': '6 MAR 1969'}}, '@F3@': {'id': '@F3@', 'FAM': '@F3@', 'HUSB': '@I7@', 'WIFE': '@I6@', 'CHIL': ['@I8@'], 'MARR': {'DATE': '7 JUL 1970'}, 'DATE': '7 JUL 1970', 'TRLR': ''}}
-        result=gedcom_project.recent_births(families, individuals)
+        result=gedcom_project.recent_births(individuals)
         self.assertEqual(result,['Bob /Matthews/ (@I5@)'])
 
     def test_correct_gender1(self):

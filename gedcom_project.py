@@ -142,11 +142,27 @@ def calculateAge(indiv):
 birthBeforeMarriageErrors = []
 
 # US 02
+husbs = []
+wifes = []
+def birthdayBeforeMarriage(person,birthday,spouse):
+    for i in spouse:
+        if (i[0] == person):
+            marriage = i[1]
+            marriage = marriage.split(" ")
+            marriage = date(
+                int(marriage[2]), months[marriage[1]], int(marriage[0]))
+            days = int((marriage - birthday).days)
+            if (days < 0):
+                if(spouse==husbs):
+                    birthBeforeMarriageErrors.append([i[0], marriage, birthday, "husband"])
+                if(spouse==wifes):
+                    birthBeforeMarriageErrors.append([i[0], marriage, birthday, "wife"])
+                return False
+    return True
+
 
 
 def birthBeforeMarriage(fam, individuals):
-    husbs = []
-    wifes = []
     for family in fam.keys():
         husbs.append([fam[family]['HUSB'], fam[family]['MARR']['DATE']])
         wifes.append([fam[family]['WIFE'], fam[family]['MARR']['DATE']])
@@ -156,31 +172,38 @@ def birthBeforeMarriage(fam, individuals):
         birthday = birthday.split(" ")
         birthday = date(
             int(birthday[2]), months[birthday[1]], int(birthday[0]))
-        for i in husbs:
-            if (i[0] == person):
-                marriage = i[1]
-                marriage = marriage.split(" ")
-                marriage = date(
-                    int(marriage[2]), months[marriage[1]], int(marriage[0]))
-                days = int((marriage - birthday).days)
-                if (days < 0):
-                    birthBeforeMarriageErrors.append(
-                        [i[0], marriage, birthday, "husband"])
-                    return False
-
-        for i in wifes:
-            if (i[0] == person):
-                marriage = i[1]
-                marriage = marriage.split(" ")
-                marriage = date(
-                    int(marriage[2]), months[marriage[1]], int(marriage[0]))
-                days = int((marriage - birthday).days)
-                if (days < 0):
-                    birthBeforeMarriageErrors.append(
-                        [i[0], marriage, birthday, "wife"])
-                    return False
+        
+        if(not birthdayBeforeMarriage(person,birthday,husbs)):
+            return False
+        if(not birthdayBeforeMarriage(person, birthday, wifes)):
+            return False
 
     return True
+        
+    #     for i in husbs:
+    #         if (i[0] == person):
+    #             marriage = i[1]
+    #             marriage = marriage.split(" ")
+    #             marriage = date(
+    #                 int(marriage[2]), months[marriage[1]], int(marriage[0]))
+    #             days = int((marriage - birthday).days)
+    #             if (days < 0):
+    #                 birthBeforeMarriageErrors.append(
+    #                     [i[0], marriage, birthday, "husband"])
+    #                 return False
+
+    #     for i in wifes:
+    #         if (i[0] == person):
+    #             marriage = i[1]
+    #             marriage = marriage.split(" ")
+    #             marriage = date(
+    #                 int(marriage[2]), months[marriage[1]], int(marriage[0]))
+    #             days = int((marriage - birthday).days)
+    #             if (days < 0):
+    #                 birthBeforeMarriageErrors.append(
+    #                     [i[0], marriage, birthday, "wife"])
+    #                 return False
+    # return True
 
 
 birthBeforeDeathErrors = []
@@ -300,6 +323,8 @@ def birthAfterDeathOfParents(family, individuals):
     return False
 
 
+
+
 # Testing for Use Case 21: Correct Gender for Role
 def correct_gender(families, individuals):
     genderErrors = []
@@ -325,34 +350,32 @@ def unique_ids(individuals):
 def get_deceased(individuals):
     return [i for i, details in individuals.items() if 'DEAT' in details]
 
-# Testing for Use Case 35: List Recent Births
-def recent_births(families, individuals):
+
+def findRecent(individuals,case):
     people = []
-    for person in list(individuals.values()):
-        birthday = person["BIRT"]["DATE"].split()
-        thirty_days_ago = datetime.today()-timedelta(days=30)
-        datetime_birthday = datetime(int(birthday[2]), int(
-            months[birthday[1]]), int(birthday[0]))
-        if(thirty_days_ago <= datetime_birthday):
-            people.append(person["NAME"]+" ("+person["id"]+")")
-    errors.append(
-        "US35: List of people who were born in the last 30 days: "+str(people))
+    for indiv in individuals.keys():
+        if (case in individuals[indiv]):
+            date = individuals[indiv][case]["DATE"]
+            date = date.split(" ")
+            thirty_days_ago = datetime.today()-timedelta(days=30)
+            datetime_date = datetime(int(date[2]), int(months[date[1]]), int(date[0]))
+            if(thirty_days_ago <= datetime_date):
+                people.append(individuals[indiv]["NAME"]+" ("+indiv+")")
+    if(case=="DEAT"):
+        errors.append("US36: List of people who died in the last 30 days: "+str(people))
+    if(case=="BIRT"):
+        errors.append("US35: List of people who were born in the last 30 days: "+str(people))
     return people
+
+# Testing for Use Case 35: List Recent Births
+def recent_births(individuals):
+    return findRecent(individuals,"BIRT")
 
 
 # Testing for Use Case 36: List Recent Deaths
 def recent_deaths(individuals):
-    people = []
-    for indiv in individuals.keys():
-        if ("DEAT" in individuals[indiv]):
-            deathdate = individuals[indiv]['DEAT']["DATE"]
-            deathdate = deathdate.split(" ")
-            thirty_days_ago = datetime.today()-timedelta(days=30)
-            datetime_birthday = datetime(int(deathdate[2]), int(months[deathdate[1]]), int(deathdate[0]))
-            if(thirty_days_ago <= datetime_birthday):
-                people.append(individuals[indiv]["NAME"]+" ("+indiv+")")
-    errors.append("US36: List of people who died in the last 30 days: "+str(people))
-    return people
+    return findRecent(individuals,"DEAT")
+   
 
 #Testing for Use Case 38: List upcoming birthdays
 
@@ -417,7 +440,7 @@ if(len(deceased)):
     errors.append(
         f"US29: List of all deceased individuals: {', '.join(deceased)}")
 # Testing for Use Case 35: List Recent Births
-recent_births(families, individuals)
+recent_births(individuals)
 
 #Testing for Use Case 36: List Recent Deaths
 recent_deaths(individuals)
@@ -425,6 +448,9 @@ recent_deaths(individuals)
 #Testing for Use Case 38: List Upcoming Birthdays
 upcoming_birthdays(individuals)
 errors = errors+genderErrors
+
+
+
 
 
 if (len(birthBeforeMarriageErrors) > 0):

@@ -195,11 +195,20 @@ class TestGedcom(unittest.TestCase):
         individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2002'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'}, '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}, '@I5@': {
         'id': '@I5@', 'INDI': '@I5@', 'NAME': 'Bob /Matthews/', 'SEX': 'M', 'BIRT': {'DATE': '2 OCT 2022'}, 'DATE': '10 MAY 1969', 'DEAT': {'DATE': '10 MAY 1969'}, 'FAMS': '@F2@'}, '@I6@': {'id': '@I6@', 'INDI': '@I6@', 'NAME': 'Rose /Viafora/', 'SEX': 'F', 'BIRT': {'DATE': '9 SEP 1933'}, 'DATE': '9 SEP 1933', 'FAMS': '@F3@'}, '@I7@': {'id': '@I7@', 'INDI': '@I7@', 'NAME': 'Jimothy /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '6 FEB 1950'}, 'DATE': '16 APR 2015', 'DEAT': {'DATE': '16 APR 2015'}, 'FAMS': '@F3@'}, '@I8@': {'id': '@I8@', 'INDI': '@I8@', 'NAME': 'Elise /Domingo/', 'SEX': 'F', 'BIRT': {'DATE': '8 SEP 1970'}, 'DATE': '8 SEP 1970', 'FAMC': '@F3@', 'FAM': '@F1@'}}
         result=gedcom_project.upcoming_birthdays(individuals)
-        self.assertEqual(result,['Gabriela /Smith/ (@I1@)','Karen /Domingo/ (@I3@)'])
+        self.assertEqual(result,['Karen /Domingo/ (@I3@)'])
 
-    
+    #User story 22 Unique ids
+    def test_unique_ids(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/'}, 'dup @I1@': {'id': 'dup @I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/'} }
+        result = gedcom_project.unique_ids(individuals)
+        self.assertEqual(result, False)
 
-
+    #User Case 29: List Diseased
+    def test_list_diseased(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2002'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'}, '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}, '@I5@': {
+        'id': '@I5@', 'INDI': '@I5@', 'NAME': 'Bob /Matthews/', 'SEX': 'M', 'BIRT': {'DATE': '4 JUL 1954'}, 'DATE': '10 MAY 1969', 'DEAT': {'DATE': '19 SEP 2022'}, 'FAMS': '@F2@'}, '@I6@': {'id': '@I6@', 'INDI': '@I6@', 'NAME': 'Rose /Viafora/', 'SEX': 'F', 'BIRT': {'DATE': '9 SEP 1933'}, 'DATE': '9 SEP 1933', 'FAMS': '@F3@'}, '@I7@': {'id': '@I7@', 'INDI': '@I7@', 'NAME': 'Jimothy /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '6 FEB 1950'}, 'DATE': '16 APR 2015', 'DEAT': {'DATE': '8 OCT 2022'}, 'FAMS': '@F3@'}, '@I8@': {'id': '@I8@', 'INDI': '@I8@', 'NAME': 'Elise /Domingo/', 'SEX': 'F', 'BIRT': {'DATE': '8 SEP 1970'}, 'DATE': '8 SEP 1970', 'FAMC': '@F3@', 'FAM': '@F1@'}}
+        result = gedcom_project.get_deceased(individuals)
+        self.assertEqual(result, ['@I5@', '@I7@'])
 
 if __name__ == '__main__':
     unittest.main()

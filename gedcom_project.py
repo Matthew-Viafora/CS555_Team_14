@@ -6,14 +6,6 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 import sys
 
-if 'gedcom_unittests' in sys.argv[0]:
-    gedcom = open('test_file.ged', "r")
-elif len(sys.argv) > 1:
-    gedcom = open(sys.argv[1], "r")
-else:
-    sys.exit("Please supply gedcom filename as program argument!")
-
-
 valid = {"INDI": True, "NAME": True, "SEX": True, "BIRT": True, "DEAT": True,
          "FAMC": True, "FAMS": True, "FAM": True, "MARR": True, "HUSB": True,
          "WIFE": True, "CHIL": True, "DIV": True, "DATE": True, "HEAD": True,
@@ -32,66 +24,73 @@ months = {"JAN": 1,
           "NOV": 11,
           "DEC": 12}
 
-individuals = {}
-families = {}
-
-
-currentInd = None
-currentFam = None
-dependent = ''
-duplicates = []
-for line in gedcom:
-    if currentFam:
-        currentInd = None
-    if currentInd:
-        currentFam = None
-
-    elements = line.strip().split(" ")
-    level = elements[0]
-    tag = elements[1]
-    value = " ".join(elements[2:])
-
-    if(len(elements) > 2 and (elements[2] == 'INDI' or elements[2] == 'FAM')):
-        tag = elements[2]
-        value = elements[1]
-        if tag == 'INDI':
-            # duplicate id checking
-            if value in individuals:
-                value = 'dup ' + value
-            individuals[value] = {"id": value}
-            currentInd = value
-        if tag == 'FAM':
-            # duplicate id checking
-            if value in families:
-                value = 'dup ' + value
-            families[value] = {"id": value}
-            currentFam = value
-
-    if(currentInd != None and tag in valid):
-        individuals[currentInd][tag] = value
-
-    if(currentFam != None and tag in valid):
-        if tag == 'CHIL':
-            if 'CHIL' in families[currentFam]:
-                families[currentFam][tag].append(value)
-            else:
-                families[currentFam][tag] = [value]
-        else:
-            families[currentFam][tag] = value
-
-    if(currentInd != None and dependent != ''):
-        individuals[currentInd][dependent] = {tag: value}
-
-    if(currentFam != None and dependent != ''):
-        families[currentFam][dependent] = {tag: value}
-
+def readfile(filename):
+    individuals = {}
+    families = {}
+    currentInd = None
+    currentFam = None
     dependent = ''
+    with open(filename, 'r') as gedcom:
+        for line in gedcom:
+            if currentFam:
+                currentInd = None
+            if currentInd:
+                currentFam = None
 
-    if(tag == 'BIRT' or tag == 'DEAT' or tag == 'MARR' or tag == 'DIV'):
-        dependent = tag
+            elements = line.strip().split(" ")
+            level = elements[0]
+            tag = elements[1]
+            value = " ".join(elements[2:])
 
-    # print(f'-->{line.strip()}')
-    #print(f'<--{level}|{tag}|{ "Y" if tag in valid else "N" }|{value}')
+            if(len(elements) > 2 and (elements[2] == 'INDI' or elements[2] == 'FAM')):
+                tag = elements[2]
+                value = elements[1]
+                if tag == 'INDI':
+                    # duplicate id checking
+                    if value in individuals:
+                        value = 'dup ' + value
+                    individuals[value] = {"id": value}
+                    currentInd = value
+                if tag == 'FAM':
+                    # duplicate id checking
+                    if value in families:
+                        value = 'dup ' + value
+                    families[value] = {"id": value}
+                    currentFam = value
+
+            if(currentInd != None and tag in valid):
+                individuals[currentInd][tag] = value
+
+            if(currentFam != None and tag in valid):
+                if tag == 'CHIL':
+                    if 'CHIL' in families[currentFam]:
+                        families[currentFam][tag].append(value)
+                    else:
+                        families[currentFam][tag] = [value]
+                else:
+                    families[currentFam][tag] = value
+
+            if(currentInd != None and dependent != ''):
+                individuals[currentInd][dependent] = {tag: value}
+
+            if(currentFam != None and dependent != ''):
+                families[currentFam][dependent] = {tag: value}
+
+            dependent = ''
+
+            if(tag == 'BIRT' or tag == 'DEAT' or tag == 'MARR' or tag == 'DIV'):
+                dependent = tag
+    return [individuals, families]
+
+if 'gedcom_unittests' in sys.argv[0]:
+    filename = "test_file.ged"
+elif len(sys.argv) > 1:
+    filename = sys.argv[1]
+else:
+    sys.exit("Please supply gedcom filename as program argument!")
+
+individuals, families = readfile(filename) 
+
 
 iTable = PrettyTable()
 # print([*individuals.values()][0])
@@ -339,11 +338,9 @@ def correct_gender(families, individuals):
 
 
 # Testing for Use Case 22: Unique IDs
-def unique_ids(individuals):
-    for i, details in individuals.items():
-        if 'dup' in i:
-            return False
-    return True
+def get_duplicates(individuals):
+    return [i.replace('dup ', '') for i in individuals if 'dup' in i]
+
 # Testing for Use Case 29: List Diseased
 
 
@@ -483,7 +480,8 @@ if (len(marriageBeforeDeathErrors) > 0):
 
 
 # Testing for Use Case 22: Unique IDs
-if(len(duplicates)):
+duplicates = get_duplicates(individuals)
+if(duplicates):
     errors.append(
         f"ERROR: INDIVIDUAL/FAMILY: US23: Duplicate IDs found: {', '.join(duplicates)}")
 
@@ -538,5 +536,3 @@ if __name__ == '__main__':
     for error in errors:
         print(error)
 
-
-gedcom.close()

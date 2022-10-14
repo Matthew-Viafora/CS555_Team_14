@@ -200,8 +200,8 @@ class TestGedcom(unittest.TestCase):
     #User story 22 Unique ids
     def test_unique_ids(self):
         individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/'}, 'dup @I1@': {'id': 'dup @I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/'} }
-        result = gedcom_project.unique_ids(individuals)
-        self.assertEqual(result, False)
+        result = gedcom_project.get_duplicates(individuals)
+        self.assertEqual(result, ['@I1@'])
 
     #User Case 29: List Diseased
     def test_list_diseased(self):

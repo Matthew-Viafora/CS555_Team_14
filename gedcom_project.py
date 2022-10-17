@@ -564,14 +564,10 @@ for f, details in families.items():
     if "CHIL" in details:
         for child in details["CHIL"]:
             for child2 in details["CHIL"]:
-                print(individuals[child]["BIRT"]
-                      ["DATE"], individuals[child2]["BIRT"]
-                      ["DATE"])
                 if child != child2:
                     t = timespan_days(individuals[child]["BIRT"]
                                       ["DATE"], individuals[child2]["BIRT"]["DATE"])
                     if (t < 2 or t > 8*30) and t >= 0:
-                        print(t)
                         errors.append(
                             f"ERROR: FAMILY: US13: {f} siblings {child} and {child2} are not born within 2 days or 8 months")
 

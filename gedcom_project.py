@@ -1,3 +1,4 @@
+from cmath import e
 from more_itertools import ilen
 from prettytable import PrettyTable
 from datetime import date
@@ -19,10 +20,11 @@ months = {"JAN": 1,
           "JUN": 6,
           "JUL": 7,
           "AUG": 8,
-          "SEP":9,
+          "SEP": 9,
           "OCT": 10,
           "NOV": 11,
           "DEC": 12}
+
 
 def readfile(filename):
     individuals = {}
@@ -82,6 +84,7 @@ def readfile(filename):
                 dependent = tag
     return [individuals, families]
 
+
 if 'gedcom_unittests' in sys.argv[0]:
     filename = "test_file.ged"
 elif len(sys.argv) > 1:
@@ -89,7 +92,7 @@ elif len(sys.argv) > 1:
 else:
     sys.exit("Please supply gedcom filename as program argument!")
 
-individuals, families = readfile(filename) 
+individuals, families = readfile(filename)
 
 
 iTable = PrettyTable()
@@ -143,7 +146,9 @@ birthBeforeMarriageErrors = []
 # US 02
 husbs = []
 wifes = []
-def birthdayBeforeMarriage(person,birthday,spouse):
+
+
+def birthdayBeforeMarriage(person, birthday, spouse):
     for i in spouse:
         if (i[0] == person):
             marriage = i[1]
@@ -152,13 +157,14 @@ def birthdayBeforeMarriage(person,birthday,spouse):
                 int(marriage[2]), months[marriage[1]], int(marriage[0]))
             days = int((marriage - birthday).days)
             if (days < 0):
-                if(spouse==husbs):
-                    birthBeforeMarriageErrors.append([i[0], marriage, birthday, "husband"])
-                if(spouse==wifes):
-                    birthBeforeMarriageErrors.append([i[0], marriage, birthday, "wife"])
+                if(spouse == husbs):
+                    birthBeforeMarriageErrors.append(
+                        [i[0], marriage, birthday, "husband"])
+                if(spouse == wifes):
+                    birthBeforeMarriageErrors.append(
+                        [i[0], marriage, birthday, "wife"])
                 return False
     return True
-
 
 
 def birthBeforeMarriage(fam, individuals):
@@ -171,14 +177,14 @@ def birthBeforeMarriage(fam, individuals):
         birthday = birthday.split(" ")
         birthday = date(
             int(birthday[2]), months[birthday[1]], int(birthday[0]))
-        
-        if(not birthdayBeforeMarriage(person,birthday,husbs)):
+
+        if(not birthdayBeforeMarriage(person, birthday, husbs)):
             return False
         if(not birthdayBeforeMarriage(person, birthday, wifes)):
             return False
 
     return True
-        
+
     #     for i in husbs:
     #         if (i[0] == person):
     #             marriage = i[1]
@@ -239,18 +245,27 @@ marriageBeforeDivorceErrors = []
 
 
 def marriageBeforeDivorce(fam):
-    husbs = []
-    wifes = []
+    ans = False
     for family in fam.keys():
         try:
             if (fam[family]['DIV']):
-                divorce = fam[family]['DIV']['DATE']
-                marriage = fam[family]['MARR']['DATE']
-                if toDateObj(divorce) < toDateObj(marriage):
-                    marriageBeforeDivorceErrors.append(
-                        [fam[family]['FAM'], toDateObj(divorce), toDateObj(marriage)])
+                if (familyHasDivorce(fam, family)):
+                    ans = True
         except:
             continue
+    return ans
+
+# Helper functions of MarriageBeforeDivorce() function for readability:
+
+
+def familyHasDivorce(fam, family):
+    divorce = fam[family]['DIV']['DATE']
+    marriage = fam[family]['MARR']['DATE']
+    if toDateObj(divorce) < toDateObj(marriage):
+        marriageBeforeDivorceErrors.append(
+            [fam[family]['FAM'], toDateObj(divorce), toDateObj(marriage)])
+        return True
+# End of helper functions
 
 
 marriageBeforeDeathErrors = []
@@ -266,23 +281,33 @@ def marriageBeforeDeath(fam, individuals):
         person = individuals[indiv]["id"]
         try:
             deathdate = toDateObj(individuals[indiv]['DEAT']["DATE"])
-            for i in husbs:
-                if (i[0] == person):
-                    marriage = toDateObj(i[1])
-                    if (deathdate < marriage):
-                        marriageBeforeDeathErrors.append(
-                            [i[0], marriage, deathdate, "husband"])
-                        return False
-            for i in wifes:
-                if (i[0] == person):
-                    marriage = toDateObj(i[1])
-                    if (deathdate < marriage):
-                        marriageBeforeDeathErrors.append(
-                            [i[0], marriage, deathdate, "wife"])
-                        return False
-
         except:
             continue
+        if (not iterThroughHusbsAndWives(husbs, person, deathdate, spouse='husb')):
+            return False
+        if (not iterThroughHusbsAndWives(wifes, person, deathdate, spouse='wife')):
+            return False
+
+    return True
+
+# Helper functions of MarriageBeforeDeath() function for readability:
+
+
+def iterThroughHusbsAndWives(spouses, person, deathdate, spouse):
+    for i in spouses:
+        if (i[0] == person):
+            marriage = toDateObj(i[1])
+            if (deathdate < marriage):
+                if (spouse == "husb"):
+                    marriageBeforeDeathErrors.append(
+                        [i[0], marriage, deathdate, "husband"])
+                    return False
+                elif (spouse == "wife"):
+                    marriageBeforeDeathErrors.append(
+                        [i[0], marriage, deathdate, "wife"])
+                    return False
+    return True
+# End of helper functions
 
 
 marriageBeforeDivorce(families)
@@ -322,8 +347,6 @@ def birthAfterDeathOfParents(family, individuals):
     return False
 
 
-
-
 # Testing for Use Case 21: Correct Gender for Role
 def correct_gender(families, individuals):
     genderErrors = []
@@ -348,47 +371,51 @@ def get_deceased(individuals):
     return [i for i, details in individuals.items() if 'DEAT' in details]
 
 
-def findRecent(individuals,case):
+def findRecent(individuals, case):
     people = []
     for indiv in individuals.keys():
         if (case in individuals[indiv]):
             date = individuals[indiv][case]["DATE"]
             date = date.split(" ")
             thirty_days_ago = datetime.today()-timedelta(days=30)
-            datetime_date = datetime(int(date[2]), int(months[date[1]]), int(date[0]))
+            datetime_date = datetime(
+                int(date[2]), int(months[date[1]]), int(date[0]))
             if(thirty_days_ago <= datetime_date):
                 people.append(individuals[indiv]["NAME"]+" ("+indiv+")")
-    if(case=="DEAT"):
-        errors.append("US36: List of people who died in the last 30 days: "+str(people))
-    if(case=="BIRT"):
-        errors.append("US35: List of people who were born in the last 30 days: "+str(people))
+    if(case == "DEAT"):
+        errors.append(
+            "US36: List of people who died in the last 30 days: "+str(people))
+    if(case == "BIRT"):
+        errors.append(
+            "US35: List of people who were born in the last 30 days: "+str(people))
     return people
 
 # Testing for Use Case 35: List Recent Births
+
+
 def recent_births(individuals):
-    return findRecent(individuals,"BIRT")
+    return findRecent(individuals, "BIRT")
 
 
 # Testing for Use Case 36: List Recent Deaths
 def recent_deaths(individuals):
-    return findRecent(individuals,"DEAT")
-   
+    return findRecent(individuals, "DEAT")
 
-#Testing for Use Case 38: List upcoming birthdays
+
+# Testing for Use Case 38: List upcoming birthdays
 
 def upcoming_birthdays(individuals):
     people = []
     for person in list(individuals.values()):
         birthday = person["BIRT"]["DATE"].split()
-        thirty_days_after=datetime.today()+timedelta(days=30)
+        thirty_days_after = datetime.today()+timedelta(days=30)
         datetime_birthday = datetime(datetime.now().year, int(
             months[birthday[1]]), int(birthday[0]))
-        if(datetime.today() <= datetime_birthday and datetime_birthday<=thirty_days_after):
+        if(datetime.today() <= datetime_birthday and datetime_birthday <= thirty_days_after):
             people.append(person["NAME"]+" ("+person["id"]+")")
     errors.append(
         "US35: List of people who have an upcoming birthday in the next 30 days: "+str(people))
     return people
-
 
 
 iTable.add_column("Age", list(
@@ -439,15 +466,12 @@ if(len(deceased)):
 # Testing for Use Case 35: List Recent Births
 recent_births(individuals)
 
-#Testing for Use Case 36: List Recent Deaths
+# Testing for Use Case 36: List Recent Deaths
 recent_deaths(individuals)
 
-#Testing for Use Case 38: List Upcoming Birthdays
+# Testing for Use Case 38: List Upcoming Birthdays
 upcoming_birthdays(individuals)
 errors = errors+genderErrors
-
-
-
 
 
 if (len(birthBeforeMarriageErrors) > 0):
@@ -535,4 +559,3 @@ if __name__ == '__main__':
     print()
     for error in errors:
         print(error)
-

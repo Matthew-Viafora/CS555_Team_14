@@ -129,6 +129,16 @@ def timespan(date1, date2):
     time = int((date2 - date1).days / days_in_year)
     return time
 
+
+def timespan_days(date1, date2):
+    # get timespan in days
+    if not isinstance(date1, date):
+        date1 = toDateObj(date1)
+    if not isinstance(date2, date):
+        date2 = toDateObj(date2)
+
+    time = int((date2 - date1).days)  # days in year, gives time in years
+    return time
 # Gives the death of an individual takes into account death date
 # US27
 

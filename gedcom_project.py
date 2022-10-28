@@ -113,6 +113,8 @@ iTable.add_column("Birthday", list(
 
 # Turns a date string into a datetime object
 def toDateObj(d):
+    if isinstance(d, date):
+        return d
     dateArray = d.split(" ")
     return date(int(dateArray[2]), months[dateArray[1]], int(dateArray[0]))
 
@@ -380,6 +382,43 @@ def get_duplicates(individuals):
 def get_deceased(individuals):
     return [i for i, details in individuals.items() if 'DEAT' in details]
 
+# Use Case 11: No bigamy (marriage during current marriage) 
+def get_bigamy(families, individuals):
+    married_pairs = {}
+    for id, info in families.items():
+        if info["HUSB"] not in married_pairs:
+            married_pairs[info["HUSB"]] = [[info["WIFE"], info["MARR"], info.get("DIV", {"DATE": date.today()})]]
+        else:
+            married_pairs[info["HUSB"]].append([info["WIFE"], info["MARR"], info.get("DIV", {"DATE": date.today()})])
+
+        if info["WIFE"] not in married_pairs:
+            married_pairs[info["WIFE"]] = [[info["HUSB"], info["MARR"], info.get("DIV", {"DATE": date.today()})]]
+        else:
+            married_pairs[info["WIFE"]].append([info["HUSB"], info["MARR"], info.get("DIV", {"DATE": date.today()})])
+
+    bigamy_pairs = []
+    for id, partners in married_pairs.items():
+        if len(partners) > 1:
+            #If any marriage ranges overlap then there is bigamy
+            for p in range(len(partners)):
+                for other_p in range(p + 1, len(partners)):
+                    if (toDateObj(partners[p][1]["DATE"]) <= toDateObj(partners[other_p][2]["DATE"])) and (toDateObj(partners[other_p][1]["DATE"]) <= toDateObj(partners[p][2]["DATE"])):
+                        bigamy_pairs.append( [partners[p][0], partners[other_p][0]] )
+    return bigamy_pairs
+
+# Use case 33: List Orphens (both parents dead < 18 years old)
+
+def get_orphens(families, individuals):
+    orphens = []
+    for id, info in families.items():
+        #Checks if both parents are deceased
+        if "DEAT" in individuals[info["HUSB"]] and "DEAT" in individuals[info["WIFE"]]:
+            for c in info["CHIL"]:
+                if calculateAge(individuals[c]) < 18:
+                    orphens.append(c)
+
+    return orphens
+ 
 
 def findRecent(individuals, case):
     people = []
@@ -482,6 +521,17 @@ recent_deaths(individuals)
 # Testing for Use Case 38: List Upcoming Birthdays
 upcoming_birthdays(individuals)
 errors = errors+genderErrors
+
+# Use Case 11: No bigamy
+bigamy_pairs = get_bigamy(families, individuals)
+if len(bigamy_pairs):
+    errors.append(f"ERROR: FAMILY: US11: Bigamy between pairs {' '.join(bigamy_pairs)} ")
+
+# Use case 33: List Orphens
+orphens = get_orphens(families, individuals)
+if len(orphens):
+    errors.append(f"US33: List of all orphens: {', '.join(orphens)}")
+
 
 
 if (len(birthBeforeMarriageErrors) > 0):

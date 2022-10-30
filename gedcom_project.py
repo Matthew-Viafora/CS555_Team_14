@@ -520,6 +520,51 @@ def upcoming_birthdays(individuals):
         "US35: List of people who have an upcoming birthday in the next 30 days: "+str(people))
     return people
 
+# Testing for Use Case 39: List upcoming Anniversaries
+def upcoming_anniversary(family,individuals):
+    families = []
+    for fam in list(family.values()):
+        anniversary = fam["MARR"]["DATE"].split()
+        thirty_days_after = datetime.today()+timedelta(days=30)
+        datetime_anniversary = datetime(datetime.now().year, int(
+            months[anniversary[1]]), int(anniversary[0]))
+        if(datetime.today() <= datetime_anniversary and datetime_anniversary <= thirty_days_after):
+            families.append(individuals[fam['HUSB']]['NAME']+' ('+fam['HUSB']+') and ' + individuals[fam['WIFE']]['NAME']+' ('+fam['WIFE']+') ' "in Family "+fam['FAM'])
+    errors.append(
+        "US35: List of people who have an upcoming birthday in the next 30 days: "+str(families))
+    return families
+
+#Testing for Use Case 1: Dates before current date
+def valid_date(families,individuals):
+    notValid=[]
+    for indiv in individuals.keys():
+        birthday = individuals[indiv]['BIRT']["DATE"]
+        birthday = birthday.split(" ")
+        birthday = datetime(int(birthday[2]), months[birthday[1]], int(birthday[0]))
+        if(birthday>datetime.today()):
+            notValid.append("Birthday of "+individuals[indiv]['NAME']+' ('+individuals[indiv]["id"]+') should not be after current date.')
+        
+        if ("DEAT" in individuals[indiv]):
+            deathdate = individuals[indiv]['DEAT']["DATE"]
+            deathdate = deathdate.split(" ")
+            deathdate = datetime(int(deathdate[2]), months[deathdate[1]], int(deathdate[0]))
+            if(deathdate>datetime.today()):
+                notValid.append("Death date of "+individuals[indiv]['NAME']+' ('+individuals[indiv]["id"]+') should not be after current date.')
+
+    for fam in families:
+        marriage=families[fam]['MARR']['DATE']
+        marriage=marriage.split(" ")
+        marriage = datetime(int(marriage[2]), months[marriage[1]], int(marriage[0]))
+        if(marriage>datetime.today()):
+            notValid.append("Marriage date of "+individuals[families[fam]['HUSB']]['NAME']+' ('+families[fam]['HUSB']+') and ' + individuals[families[fam]['WIFE']]['NAME']+' ('+families[fam]['WIFE']+") in Family "+families[fam]['FAM']+ " should not be after current date.")
+
+        if("DIV" in fam):
+            divorcedate=fam['DIV']['DATE']
+            divorcedate=divorcedate.split(" ")
+            divorcedate=datetime(int(divorcedate[2]), months[divorcedate[1]], int(divorcedate[0]))
+            if(divorcedate>datetime.today()):
+                notValid.append("Divorce date of "+individuals[families[fam]['HUSB']]['NAME']+' ('+families[fam]['HUSB']+') and ' + individuals[families[fam]['WIFE']]['NAME']+' ('+families[fam]['WIFE']+') ' "in Family "+families[fam]['FAM']+' should not be after current date.')
+    return notValid
 
 iTable.add_column("Age", list(
     map(lambda indiv: calculateAge(indiv), [*individuals.values()])))
@@ -575,6 +620,16 @@ recent_deaths(individuals)
 # Testing for Use Case 38: List Upcoming Birthdays
 upcoming_birthdays(individuals)
 errors = errors+genderErrors
+
+#Testing for Use Case 29: List Upcoming Anniversaries
+upcoming_anniversary(families, individuals)
+
+#Testing for Use Case 1:Dates Before Current Date
+validDate=valid_date(families,individuals)
+
+if len(validDate):
+    for i in range(len(validDate)):
+        errors.append(validDate[i])
 
 # Use Case 11: No bigamy
 bigamy_pairs = get_bigamy(families, individuals)

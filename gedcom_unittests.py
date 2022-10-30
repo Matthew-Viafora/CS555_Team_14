@@ -274,6 +274,20 @@ class TestGedcom(unittest.TestCase):
                              'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}}
         result = gedcom_project.get_orphens(families, individuals)
         self.assertEqual(result, ['@I1@'])
+    
+    # User story 39: List Upcoming Anniversary
+    def test_upcoming_anniversary(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'}, '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '31 OCT 1986'}, 'DATE': '6 MAY 1986'}}
+        result = gedcom_project.upcoming_anniversary(families, individuals)
+        self.assertEqual(result, ['George /Smith/ (@I2@) and Karen /Domingo/ (@I3@) in Family @F1@'])
+    
+    #User Story 1: Date Before Current Date
+    def test_valid_date(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, "DEAT": {"DATE": "10 JAN 2056"}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'}, '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '15 NOV 2025'}, 'DATE': '6 MAY 1986'}}
+        result = gedcom_project.valid_date(families, individuals)
+        self.assertEqual(result, ['Death date of George /Smith/ (@I2@) should not be after current date.','Marriage date of George /Smith/ (@I2@) and Karen /Domingo/ (@I3@) in Family @F1@ should not be after current date.'])
 
     # User story 06: Divorce Before Death
     def test_divorce_before_death(self):

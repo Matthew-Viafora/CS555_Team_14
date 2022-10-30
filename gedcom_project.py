@@ -197,31 +197,6 @@ def birthBeforeMarriage(fam, individuals):
 
     return True
 
-    #     for i in husbs:
-    #         if (i[0] == person):
-    #             marriage = i[1]
-    #             marriage = marriage.split(" ")
-    #             marriage = date(
-    #                 int(marriage[2]), months[marriage[1]], int(marriage[0]))
-    #             days = int((marriage - birthday).days)
-    #             if (days < 0):
-    #                 birthBeforeMarriageErrors.append(
-    #                     [i[0], marriage, birthday, "husband"])
-    #                 return False
-
-    #     for i in wifes:
-    #         if (i[0] == person):
-    #             marriage = i[1]
-    #             marriage = marriage.split(" ")
-    #             marriage = date(
-    #                 int(marriage[2]), months[marriage[1]], int(marriage[0]))
-    #             days = int((marriage - birthday).days)
-    #             if (days < 0):
-    #                 birthBeforeMarriageErrors.append(
-    #                     [i[0], marriage, birthday, "wife"])
-    #                 return False
-    # return True
-
 
 birthBeforeDeathErrors = []
 
@@ -322,6 +297,77 @@ def iterThroughHusbsAndWives(spouses, person, deathdate, spouse):
 # End of helper functions
 
 
+# US 06
+divorceAfterDeathErrors = []
+
+
+def divorceAfterDeath(fam, individuals):
+    husbs = []
+    wifes = []
+    for family in fam.keys():
+        try:
+            if (fam[family]['DIV']):
+                husbs.append([fam[family]['HUSB'], fam[family]['DIV']['DATE']])
+                wifes.append([fam[family]['WIFE'], fam[family]['DIV']['DATE']])
+        except:
+            continue
+    for indiv in individuals.keys():
+        person = individuals[indiv]["id"]
+        for husb in husbs:
+            if (husb[0] == person):
+                divorce = toDateObj(husb[1])
+                try:
+                    deathdate = toDateObj(individuals[indiv]['DEAT']["DATE"])
+                except:
+                    continue
+                if (divorce > deathdate):
+                    divorceAfterDeathErrors.append(
+                        [husb[0], divorce, deathdate, "husb"])
+                    return False
+
+        for wife in wifes:
+            if (wife[0] == person):
+                divorce = toDateObj(wife[1])
+                try:
+                    deathdate = toDateObj(individuals[indiv]['DEAT']["DATE"])
+                except:
+                    continue
+                print(divorce)
+                print(deathdate)
+                if (divorce > deathdate):
+                    divorceAfterDeathErrors.append(
+                        [wife[0], divorce, deathdate, "wife"])
+                    return False
+    return True
+
+
+# US 07
+lessThan150Errors = []
+
+
+def lessThan150YearsOld(individuals):
+    res = False
+    for indiv in individuals.keys():
+        person = individuals[indiv]["id"]
+        try:
+            # dead
+            deathdate = toDateObj(individuals[indiv]['DEAT']["DATE"])
+            birthdate = toDateObj(individuals[indiv]['BIRT']["DATE"])
+            if (deathdate - birthdate >= 150):
+                lessThan150Errors.append([person, birthdate])
+                res = True
+        except:
+            # living
+            birthdate = toDateObj(individuals[indiv]['BIRT']["DATE"])
+            ans = toDateObj(date.today()) - birthdate
+            if ((int(ans.days))/365 >= 150):
+                lessThan150Errors.append([person, birthdate])
+                res = True
+    return res
+
+
+divorceAfterDeath(families, individuals)
+lessThan150YearsOld(individuals)
 marriageBeforeDivorce(families)
 marriageBeforeDeath(families, individuals)
 
@@ -382,43 +428,51 @@ def get_duplicates(individuals):
 def get_deceased(individuals):
     return [i for i, details in individuals.items() if 'DEAT' in details]
 
-# Use Case 11: No bigamy (marriage during current marriage) 
+# Use Case 11: No bigamy (marriage during current marriage)
+
+
 def get_bigamy(families, individuals):
     married_pairs = {}
     for id, info in families.items():
         if info["HUSB"] not in married_pairs:
-            married_pairs[info["HUSB"]] = [[info["WIFE"], info["MARR"], info.get("DIV", {"DATE": date.today()})]]
+            married_pairs[info["HUSB"]] = [
+                [info["WIFE"], info["MARR"], info.get("DIV", {"DATE": date.today()})]]
         else:
-            married_pairs[info["HUSB"]].append([info["WIFE"], info["MARR"], info.get("DIV", {"DATE": date.today()})])
+            married_pairs[info["HUSB"]].append(
+                [info["WIFE"], info["MARR"], info.get("DIV", {"DATE": date.today()})])
 
         if info["WIFE"] not in married_pairs:
-            married_pairs[info["WIFE"]] = [[info["HUSB"], info["MARR"], info.get("DIV", {"DATE": date.today()})]]
+            married_pairs[info["WIFE"]] = [
+                [info["HUSB"], info["MARR"], info.get("DIV", {"DATE": date.today()})]]
         else:
-            married_pairs[info["WIFE"]].append([info["HUSB"], info["MARR"], info.get("DIV", {"DATE": date.today()})])
+            married_pairs[info["WIFE"]].append(
+                [info["HUSB"], info["MARR"], info.get("DIV", {"DATE": date.today()})])
 
     bigamy_pairs = []
     for id, partners in married_pairs.items():
         if len(partners) > 1:
-            #If any marriage ranges overlap then there is bigamy
+            # If any marriage ranges overlap then there is bigamy
             for p in range(len(partners)):
                 for other_p in range(p + 1, len(partners)):
                     if (toDateObj(partners[p][1]["DATE"]) <= toDateObj(partners[other_p][2]["DATE"])) and (toDateObj(partners[other_p][1]["DATE"]) <= toDateObj(partners[p][2]["DATE"])):
-                        bigamy_pairs.append( [partners[p][0], partners[other_p][0]] )
+                        bigamy_pairs.append(
+                            [partners[p][0], partners[other_p][0]])
     return bigamy_pairs
 
 # Use case 33: List Orphens (both parents dead < 18 years old)
 
+
 def get_orphens(families, individuals):
     orphens = []
     for id, info in families.items():
-        #Checks if both parents are deceased
+        # Checks if both parents are deceased
         if "DEAT" in individuals[info["HUSB"]] and "DEAT" in individuals[info["WIFE"]]:
             for c in info["CHIL"]:
                 if calculateAge(individuals[c]) < 18:
                     orphens.append(c)
 
     return orphens
- 
+
 
 def findRecent(individuals, case):
     people = []
@@ -525,13 +579,13 @@ errors = errors+genderErrors
 # Use Case 11: No bigamy
 bigamy_pairs = get_bigamy(families, individuals)
 if len(bigamy_pairs):
-    errors.append(f"ERROR: FAMILY: US11: Bigamy between pairs {' '.join(bigamy_pairs)} ")
+    errors.append(
+        f"ERROR: FAMILY: US11: Bigamy between pairs {' '.join(bigamy_pairs)} ")
 
 # Use case 33: List Orphens
 orphens = get_orphens(families, individuals)
 if len(orphens):
     errors.append(f"US33: List of all orphens: {', '.join(orphens)}")
-
 
 
 if (len(birthBeforeMarriageErrors) > 0):
@@ -562,8 +616,23 @@ if (len(marriageBeforeDeathErrors) > 0):
             errors.append(
                 f"ERROR: FAMILY: US05 {i[0]} : Married {i[2]} after wife's death on {i[1]}")
 
+if (len(divorceAfterDeathErrors) > 0):
+    for i in divorceAfterDeathErrors:
+        if (i[3] == 'husb'):
+            errors.append(
+                f"ERROR: FAMILY: US06 {i[0]} : Divorced {i[1]} after husband's death on {i[2]}"
+            )
+        elif (i[3] == 'wife'):
+            errors.append(
+                f"ERROR: FAMILY: US06 {i[0]} : Divorced {i[1]} after husband's death on {i[2]}"
+            )
+if (len(lessThan150Errors) > 0):
+    for i in lessThan150Errors:
+        errors.append(
+            f"ERROR: INDIVIDUAL: US07 : {i[0]} : More than 150 years old - Birth date {i[1]}"
+        )
 
-# Testing for Use Case 22: Unique IDs
+    # Testing for Use Case 22: Unique IDs
 duplicates = get_duplicates(individuals)
 if(duplicates):
     errors.append(

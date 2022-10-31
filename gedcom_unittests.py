@@ -1,7 +1,9 @@
 import unittest
 import gedcom_project
 from datetime import date
+from datetime import timedelta
 
+today = date.today()
 
 class TestGedcom(unittest.TestCase):
 
@@ -278,7 +280,9 @@ class TestGedcom(unittest.TestCase):
     # User story 39: List Upcoming Anniversary
     def test_upcoming_anniversary(self):
         individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'}, '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
-        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '31 OCT 1986'}, 'DATE': '6 MAY 1986'}}
+        individuals['@I2@']["BIRT"]
+        tomorrow = today + timedelta(days=1)
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': f'{tomorrow.strftime("%d")} {list(gedcom_project.months.keys())[int(tomorrow.strftime("%m"))-1]} 1986'}, 'DATE': '6 MAY 1986'}}
         result = gedcom_project.upcoming_anniversary(families, individuals)
         self.assertEqual(result, ['George /Smith/ (@I2@) and Karen /Domingo/ (@I3@) in Family @F1@'])
     

@@ -303,12 +303,33 @@ class TestGedcom(unittest.TestCase):
         self.assertEqual(result, True)
 
     # User story 07: less than 150 years old
-    def test_divorce_before_death(self):
+    def test_lessThan150YearsOld(self):
         individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 1800'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'},
                        '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
         result = gedcom_project.lessThan150YearsOld(individuals)
         self.assertEqual(result, True)
 
+    # User story 16: All male members of a family should have the same last name
+    def test_male_lastname(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Daniel/', 'SEX': 'M', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'},
+                       '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /HAROLD/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@',
+                             'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}}
+        result = gedcom_project.male_lastname(families, individuals)
+        self.assertEqual(result, [['@F1@', '@I1@'], ['@F1@', '@I4@']])
+
+    # User story 18: Siblings should not marry one another
+    def test_sibling_marriage(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'},
+                       '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
+        individuals['@I1@']["FAMS"] = '@F2@'
+        individuals['@I4@']["FAMS"] = '@F2@'
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@',
+                             'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'},
+                    '@F2@': {'id': '@F2@', 'FAM': '@F2@', 'HUSB': '@I1@', 'WIFE': '@I4@',
+                             'CHIL': [], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}}
+        result = gedcom_project.sibling_marriage(families, individuals)
+        self.assertEqual(result, [['@F1@', '@I1@', '@I4@'], ['@F1@', '@I4@', '@I1@']])
 
 if __name__ == '__main__':
     unittest.main()

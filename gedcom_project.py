@@ -698,6 +698,38 @@ for i, details in individuals.items():
 
     # Remove this when code is added to the loop
     break
+
+# US 16
+# All male members of a family should have the same last name
+def male_lastname(families, individuals):
+    results = []
+    for f, details in families.items():
+        if "CHIL" in details:
+            for child in details["CHIL"]:
+                # get the last name of the child
+                childLastName = individuals[child]["NAME"].split(" ")[-1]
+                # get the last name of the father
+                fatherLastName = individuals[details["HUSB"]]["NAME"].split(" ")[-1]
+                # if the child is male and father is male and the last names are different
+                if childLastName != fatherLastName and individuals[child]["SEX"] == "M":
+                    results.append([f, child])
+
+    return results
+# US 18
+# Siblings should not marry one another
+def sibling_marriage(families, individuals):
+    results = []
+    for f, details in families.items():
+        if "CHIL" in details:
+            for child in details["CHIL"]:
+                for child2 in details["CHIL"]:
+                    if child != child2:
+                        if "FAMS" in individuals[child] and "FAMS" in individuals[child2]:
+                            if individuals[child]["FAMS"] == individuals[child2]["FAMS"]:
+                                results.append([f, child, child2])
+    return results
+    
+
 for f, details in families.items():
     # check for errors in families
 
@@ -745,31 +777,16 @@ for f, details in families.items():
                         errors.append(
                             f"ERROR: FAMILY: US13: {f} siblings {child} and {child2} are not born within 2 days or 8 months")
 
-    # US 16
-    # All male members of a family should have the same last name
-    if "CHIL" in details:
-        for child in details["CHIL"]:
-            # get the last name of the child
-            childLastName = individuals[child]["NAME"].split(" ")[-1]
-            # get the last name of the father
-            fatherLastName = individuals[details["HUSB"]
-                                         ]["NAME"].split(" ")[-1]
-            # if the child is male and father is male and the last names are different
-            if childLastName != fatherLastName and individuals[child]["SEX"] == "M" and individuals[details["HUSB"]]["SEX"] == "M":
-                errors.append(
-                    f"ERROR: FAMILY: US16: {f} child {child} has a different last name than their parents")
 
-    # US 18
-    # Siblings should not marry one another
-    if "CHIL" in details:
-        for child in details["CHIL"]:
-            for child2 in details["CHIL"]:
-                if child != child2:
-                    if "FAMS" in individuals[child] and "FAMS" in individuals[child2]:
-                        if individuals[child]["FAMS"] == individuals[child2]["FAMS"]:
-                            errors.append(
-                                f"ERROR: FAMILY: US18: {f} siblings {child} and {child2} are married")
+# US 16
+# All male members of a family should have the same last name
+for f, child in male_lastname(families, individuals):
+    errors.append(f"ERROR: FAMILY: US16: {f} child {child} has a different last name than their parents")
 
+# US 18
+# # Siblings should not marry one another
+for f, child, child2 in sibling_marriage(families, individuals): 
+    errors.append(f"ERROR: FAMILY: US18: {f} siblings {child} and {child2} are married")
 
 if __name__ == '__main__':
     print("Individuals:")

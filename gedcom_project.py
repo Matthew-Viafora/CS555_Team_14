@@ -93,10 +93,7 @@ else:
 
 individuals, families = readfile(filename)
 
-
 iTable = PrettyTable()
-# print([*individuals.values()][0])
-# print([*families.values()][1])
 
 iTable.add_column("ID", [*individuals])
 
@@ -686,17 +683,11 @@ if (len(lessThan150Errors) > 0):
             f"ERROR: INDIVIDUAL: US07 : {i[0]} : More than 150 years old - Birth date {i[1]}"
         )
 
-    # Testing for Use Case 22: Unique IDs
+# Testing for Use Case 22: Unique IDs
 duplicates = get_duplicates(individuals)
 if(duplicates):
     errors.append(
         f"ERROR: INDIVIDUAL/FAMILY: US23: Duplicate IDs found: {', '.join(duplicates)}")
-
-for i, details in individuals.items():
-    # check for errors in individuals
-
-    # Remove this when code is added to the loop
-    break
 
 # US 16
 # All male members of a family should have the same last name
@@ -793,12 +784,18 @@ for f, child in male_lastname(families, individuals):
 for f, child, child2 in sibling_marriage(families, individuals): 
     errors.append(f"ERROR: FAMILY: US18: {f} siblings {child} and {child2} are married")
 
+# US12
+# parents not too old - Mother should be less than 60 years older than her children and faher should be less than 80 years older than his children
 for f, member, years, child in parents_too_old(families, individuals):
     errors.append(f"ERROR: FAMILY: US12: {f} {member} is more than {years} years older than the child {child}")
 
+# US 13
+# Siblings spacing - Birth dates of siblings should be more than 8 months apart or less than 2 days apart
 for f, child, child2 in siblings_spacing(families, individuals):
     errors.append(f"ERROR: FAMILY: US13: {f} siblings {child} and {child2} are not born within 2 days or 8 months")
-
+    
+# US10
+# check for marriage before 14
 for f in marriage_before_14(families, individuals):
     errors.append(f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
 

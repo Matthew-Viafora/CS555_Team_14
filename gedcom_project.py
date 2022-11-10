@@ -759,6 +759,15 @@ def siblings_spacing(families, individuals):
                             results.append([f, child, child2])
     return results
 
+def marriage_before_14(families, individuals):
+    # check for marriage before 14
+    # US10
+    results = []
+    for f, details in families.items():
+        if "MARR" in details:
+            if timespan(individuals[details["HUSB"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14 or timespan(individuals[details["WIFE"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14:
+                results.append(f)
+    return results
 
 for f, details in families.items():
     # check for errors in families
@@ -773,12 +782,6 @@ for f, details in families.items():
     if birthAfterDeathOfParents(details, individuals):
         errors.append(
             f"ERROR: FAMILY: US09: {f} birth of child after death of parents")
-    # check for marriage before 14
-    # US10
-    if "MARR" in details:
-        if timespan(individuals[details["HUSB"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14 or timespan(individuals[details["WIFE"]]["BIRT"]["DATE"], details["MARR"]["DATE"]) < 14:
-            errors.append(
-                f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
 
 # US 16
 # All male members of a family should have the same last name
@@ -795,6 +798,9 @@ for f, member, years, child in parents_too_old(families, individuals):
 
 for f, child, child2 in siblings_spacing(families, individuals):
     errors.append(f"ERROR: FAMILY: US13: {f} siblings {child} and {child2} are not born within 2 days or 8 months")
+
+for f in marriage_before_14(families, individuals):
+    errors.append(f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
 
 if __name__ == '__main__':
     print("Individuals:")

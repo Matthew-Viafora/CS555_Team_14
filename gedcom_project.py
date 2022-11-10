@@ -1,5 +1,4 @@
 from cmath import e
-from more_itertools import ilen
 from prettytable import PrettyTable
 from datetime import date
 from datetime import datetime
@@ -728,7 +727,38 @@ def sibling_marriage(families, individuals):
                             if individuals[child]["FAMS"] == individuals[child2]["FAMS"]:
                                 results.append([f, child, child2])
     return results
-    
+def parents_too_old(families, individuals):
+    # US12
+    # parents not too old - Mother should be less than 60 years older than her children and faher should be less than 80 years older than his children
+    results = []
+    for f, details in families.items():
+        if "CHIL" in details:
+            for child in details["CHIL"]:
+                t = timespan(individuals[details["HUSB"]]["BIRT"]
+                            ["DATE"], individuals[child]["BIRT"]["DATE"])
+                if t > 80:
+                    results.append([f, "father", 80, child] )
+                t = timespan(individuals[details["WIFE"]]["BIRT"]
+                            ["DATE"], individuals[child]["BIRT"]["DATE"])
+                if t > 60:
+                    results.append([f, "mother", 60, child] )
+    return results
+
+def siblings_spacing(families, individuals):
+    # US 13
+    # Siblings spacing - Birth dates of siblings should be more than 8 months apart or less than 2 days apart
+    results = []
+    for f, details in families.items():
+        if "CHIL" in details:
+            for child in details["CHIL"]:
+                for child2 in details["CHIL"]:
+                    if child != child2:
+                        t = timespan_days(individuals[child]["BIRT"]
+                                        ["DATE"], individuals[child2]["BIRT"]["DATE"])
+                        if (t < 2 or t > 8*30) and t >= 0:
+                            results.append([f, child, child2])
+    return results
+
 
 for f, details in families.items():
     # check for errors in families
@@ -750,34 +780,6 @@ for f, details in families.items():
             errors.append(
                 f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
 
-    # US12
-    # parents not too old - Mother should be less than 60 years older than her children and faher should be less than 80 years older than his children
-    if "CHIL" in details:
-        for child in details["CHIL"]:
-            t = timespan(individuals[details["HUSB"]]["BIRT"]
-                         ["DATE"], individuals[child]["BIRT"]["DATE"])
-            if t > 80:
-                errors.append(
-                    f"ERROR: FAMILY: US12: {f} father is more than 80 years older than the child {child}")
-            t = timespan(individuals[details["WIFE"]]["BIRT"]
-                         ["DATE"], individuals[child]["BIRT"]["DATE"])
-            if t > 60:
-                errors.append(
-                    f"ERROR: FAMILY: US12: {f} mother is more than 60 years older than the child {child}")
-
-    # US 13
-    # Siblings spacing - Birth dates of siblings should be more than 8 months apart or less than 2 days apart
-    if "CHIL" in details:
-        for child in details["CHIL"]:
-            for child2 in details["CHIL"]:
-                if child != child2:
-                    t = timespan_days(individuals[child]["BIRT"]
-                                      ["DATE"], individuals[child2]["BIRT"]["DATE"])
-                    if (t < 2 or t > 8*30) and t >= 0:
-                        errors.append(
-                            f"ERROR: FAMILY: US13: {f} siblings {child} and {child2} are not born within 2 days or 8 months")
-
-
 # US 16
 # All male members of a family should have the same last name
 for f, child in male_lastname(families, individuals):
@@ -787,6 +789,12 @@ for f, child in male_lastname(families, individuals):
 # # Siblings should not marry one another
 for f, child, child2 in sibling_marriage(families, individuals): 
     errors.append(f"ERROR: FAMILY: US18: {f} siblings {child} and {child2} are married")
+
+for f, member, years, child in parents_too_old(families, individuals):
+    errors.append(f"ERROR: FAMILY: US12: {f} {member} is more than {years} years older than the child {child}")
+
+for f, child, child2 in siblings_spacing(families, individuals):
+    errors.append(f"ERROR: FAMILY: US13: {f} siblings {child} and {child2} are not born within 2 days or 8 months")
 
 if __name__ == '__main__':
     print("Individuals:")

@@ -376,6 +376,39 @@ class TestGedcom(unittest.TestCase):
                              'CHIL': [], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}}
         result = gedcom_project.marriage_before_14(families, individuals)
         self.assertEqual(result, ['@F2@'])
+
+    # Use case 14: Multiple births <= 5 (No more than five siblings should be born at the same time)
+    def test_too_many_births(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1900'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'},
+                       '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@',
+                             'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'},
+                    '@F2@': {'id': '@F2@', 'FAM': '@F2@', 'HUSB': '@I1@', 'WIFE': '@I4@',
+                             'CHIL': [], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}}
+        individuals['@I5@'] = {'id': '@I5@', 'INDI': '@I5@', 'NAME': 'Tom /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}
+        individuals['@I6@'] = {'id': '@I6@', 'INDI': '@I6@', 'NAME': 'Bob /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}
+        individuals['@I7@'] = {'id': '@I7@', 'INDI': '@I7@', 'NAME': 'Dick /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}
+        individuals['@I8@'] = {'id': '@I8@', 'INDI': '@I8@', 'NAME': 'John /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}
+        individuals['@I9@'] = {'id': '@I9@', 'INDI': '@I9@', 'NAME': 'Perry /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}
+        individuals['@I10@'] = {'id': '@I10@', 'INDI': '@I10@', 'NAME': 'Josh /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}
+
+        families['@F1@']["CHIL"] += ['@I5@','@I6@', '@I7@', '@I8@', '@I9@', '@I10@']
+        result = gedcom_project.multiple_births(families, individuals)
+        self.assertEqual(result, [['@F1@', '12 OCT 2010', 7]])
         
+    # Use case 15: There should be fewer than 15 siblings in a family
+    def test_max_siblings(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1900'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'},
+                       '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@',
+                             'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'},
+                    '@F2@': {'id': '@F2@', 'FAM': '@F2@', 'HUSB': '@I1@', 'WIFE': '@I4@',
+                             'CHIL': [], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}}
+        for i in range(15):
+            individuals[f'@I{5+i}'] = {'id': f'@I{5+i}', 'INDI': f'@I{5+i}', 'NAME': f'Tom{i} /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '12 OCT 2010'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}
+            families['@F1@']["CHIL"].append(f'@I{5+i}')
+        result = gedcom_project.maxSiblings(families)
+        self.assertEqual(result, ['@F1@'])
+
 if __name__ == '__main__':
     unittest.main()

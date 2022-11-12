@@ -751,6 +751,33 @@ if len(orphens):
     errors.append(f"US33: List of all orphens: {', '.join(orphens)}")
 #-----------------------------------------------------Sprint 3 end-----------------------------------------------------#
 #-----------------------------------------------------Sprint 4-----------------------------------------------------#
+# Use case 14: Multiple births <= 5 (No more than five siblings should be born at the same time)
+def multiple_births(families, individuals):
+    results = []
+    for id, info in families.items():
+        birthtimes = {}
+        if "CHIL" in info:
+            for c in info["CHIL"]:
+                if individuals[c]["BIRT"]["DATE"] in birthtimes:
+                    birthtimes[individuals[c]["BIRT"]["DATE"]] += 1  
+                else:
+                    birthtimes[individuals[c]["BIRT"]["DATE"]] = 1
+        
+        for d, births in birthtimes.items():
+            if births > 5:
+                results.append([id, d, births])
+    return results
+
+tooManyBirths = multiple_births(families, individuals)
+for fam, d, births in tooManyBirths:
+        errors.append(f"ERROR: FAMILY: US14: FAM {fam} has too many births on {d} births: {births}")
+
+# Use case 15: There should be fewer than 15 siblings in a family
+def maxSiblings(families):
+    return  [f for f, details in families.items() if len(details["CHIL"]) >= 15]
+
+for fam in maxSiblings(families):
+    errors.append(f"ERROR: FAMILY: US15: FAM {fam} has 15 or more siblings")
 
 #-----------------------------------------------------Sprint 4 end-----------------------------------------------------#
 

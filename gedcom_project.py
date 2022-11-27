@@ -137,6 +137,7 @@ def calculateAge(indiv):
     age = timespan(birthDate, compareDate)
     return age
 
+
 def findRecent(individuals, case):
     people = []
     for indiv in individuals.keys():
@@ -155,10 +156,11 @@ def findRecent(individuals, case):
         errors.append(
             "US35: List of people who were born in the last 30 days: "+str(people))
     return people
-    
+
 #-----------------------------------------------------Helper Functions END-----------------------------------------------------#
 
-#Builds the individuals table
+
+# Builds the individuals table
 iTable = PrettyTable()
 
 iTable.add_column("ID", [*individuals])
@@ -172,7 +174,7 @@ iTable.add_column("Gender", list(
 iTable.add_column("Birthday", list(
     map(lambda indiv: indiv['BIRT']['DATE'], [*individuals.values()])))
 
-#US27 include individual ages
+# US27 include individual ages
 iTable.add_column("Age", list(
     map(lambda indiv: calculateAge(indiv), [*individuals.values()])))
 
@@ -182,7 +184,7 @@ iTable.add_column("Alive", list(
 iTable.add_column("Death", list(map(
     lambda indiv: "N/A" if not 'DEAT' in indiv else indiv["DEAT"]["DATE"], [*individuals.values()])))
 
-#Builds the family table
+# Builds the family table
 fTable = PrettyTable()
 
 fTable.add_column("ID", [*families])
@@ -240,6 +242,7 @@ def birthdayBeforeMarriage(person, birthday, spouse):
                 return False
     return True
 
+
 def birthBeforeMarriage(fam, individuals):
     for family in fam.keys():
         husbs.append([fam[family]['HUSB'], fam[family]['MARR']['DATE']])
@@ -258,8 +261,11 @@ def birthBeforeMarriage(fam, individuals):
 
     return True
 
+
 # US03
 birthBeforeDeathErrors = []
+
+
 def birthBeforeDeath(indiv):
     for indiv in indiv.keys():
         person = individuals[indiv]["id"]
@@ -278,6 +284,7 @@ def birthBeforeDeath(indiv):
                 return False
 
     return True
+
 
 birthBeforeMarriage(families, individuals)
 birthBeforeDeath(individuals)
@@ -308,16 +315,24 @@ def correct_gender(families, individuals):
             genderErrors.append("ERROR: INDIVIDUAL: US21: Gender of Wife " +
                                 individuals[family['WIFE']]['NAME']+' ('+family['WIFE']+') '+"in Family "+family['FAM']+" "+"is male.")
     return genderErrors
+
+
 genderErrors = correct_gender(families, individuals)
 errors = errors+genderErrors
 
 # Testing for Use Case 35: List Recent Births
+
+
 def recent_births(individuals):
     return findRecent(individuals, "BIRT")
+
+
 recent_births(individuals)
 
 # US10
 # check for marriage before 14
+
+
 def marriage_before_14(families, individuals):
     results = []
     for f, details in families.items():
@@ -326,12 +341,15 @@ def marriage_before_14(families, individuals):
                 results.append(f)
     return results
 
+
 for f in marriage_before_14(families, individuals):
     errors.append(f"ERROR: FAMILY: US10: {f} marriage before 14 years of age")
 
-#US 27 found in table output
+# US 27 found in table output
 
 # User Story 08
+
+
 def birthBeforeMarriageOfParents(family, individuals):
     if 'MARR' in family:
         for child in family["CHIL"]:
@@ -343,6 +361,8 @@ def birthBeforeMarriageOfParents(family, individuals):
     return False
 
 # User Story 09
+
+
 def birthAfterDeathOfParents(family, individuals):
     for child in family["CHIL"]:
         father_death_date = "N/A" if not 'DEAT' in individuals[family["HUSB"]
@@ -362,6 +382,7 @@ def birthAfterDeathOfParents(family, individuals):
 
     return False
 
+
 for f, details in families.items():
     # check for errors in families
 
@@ -378,6 +399,8 @@ for f, details in families.items():
 
 #-----------------------------------------------------Sprint 1 end-----------------------------------------------------#
 #-----------------------------------------------------Sprint 2-----------------------------------------------------#
+
+
 # US04
 marriageBeforeDivorceErrors = []
 
@@ -447,6 +470,7 @@ def iterThroughHusbsAndWives(spouses, person, deathdate, spouse):
     return True
 # End of helper functions
 
+
 marriageBeforeDivorce(families)
 marriageBeforeDeath(families, individuals)
 if (len(marriageBeforeDivorceErrors) > 0):
@@ -464,11 +488,17 @@ if (len(marriageBeforeDeathErrors) > 0):
                 f"ERROR: FAMILY: US05 {i[0]} : Married {i[2]} after wife's death on {i[1]}")
 
 # Testing for Use Case 36: List Recent Deaths
+
+
 def recent_deaths(individuals):
     return findRecent(individuals, "DEAT")
+
+
 recent_deaths(individuals)
 
 # Testing for Use Case 38: List Upcoming Birthdays
+
+
 def upcoming_birthdays(individuals):
     people = []
     for person in list(individuals.values()):
@@ -481,43 +511,60 @@ def upcoming_birthdays(individuals):
     errors.append(
         "US38: List of people who have an upcoming birthday in the next 30 days: "+str(people))
     return people
+
+
 upcoming_birthdays(individuals)
 
 # Testing for Use Case 22: Unique IDs
+
+
 def get_duplicates(individuals):
     return [i.replace('dup ', '') for i in individuals if 'dup' in i]
+
+
 duplicates = get_duplicates(individuals)
 if(duplicates):
     errors.append(
         f"ERROR: INDIVIDUAL/FAMILY: US23: Duplicate IDs found: {', '.join(duplicates)}")
 
 # Testing for Use Case 29: List Diseased
+
+
 def get_deceased(individuals):
     return [i for i, details in individuals.items() if 'DEAT' in details]
+
+
 deceased = get_deceased(individuals)
 if(len(deceased)):
     errors.append(
         f"US29: List of all deceased individuals: {', '.join(deceased)}")
 
 # US12 parents not too old - Mother should be less than 60 years older than her children and faher should be less than 80 years older than his children
+
+
 def parents_too_old(families, individuals):
     results = []
     for f, details in families.items():
         if "CHIL" in details:
             for child in details["CHIL"]:
                 t = timespan(individuals[details["HUSB"]]["BIRT"]
-                            ["DATE"], individuals[child]["BIRT"]["DATE"])
+                             ["DATE"], individuals[child]["BIRT"]["DATE"])
                 if t > 80:
-                    results.append([f, "father", 80, child] )
+                    results.append([f, "father", 80, child])
                 t = timespan(individuals[details["WIFE"]]["BIRT"]
-                            ["DATE"], individuals[child]["BIRT"]["DATE"])
+                             ["DATE"], individuals[child]["BIRT"]["DATE"])
                 if t > 60:
-                    results.append([f, "mother", 60, child] )
+                    results.append([f, "mother", 60, child])
     return results
+
+
 for f, member, years, child in parents_too_old(families, individuals):
-    errors.append(f"ERROR: FAMILY: US12: {f} {member} is more than {years} years older than the child {child}")
-    
+    errors.append(
+        f"ERROR: FAMILY: US12: {f} {member} is more than {years} years older than the child {child}")
+
 # US 13 - Siblings spacing - Birth dates of siblings should be more than 8 months apart or less than 2 days apart
+
+
 def siblings_spacing(families, individuals):
     results = []
     for f, details in families.items():
@@ -526,16 +573,21 @@ def siblings_spacing(families, individuals):
                 for child2 in details["CHIL"]:
                     if child != child2:
                         t = timespan_days(individuals[child]["BIRT"]
-                                        ["DATE"], individuals[child2]["BIRT"]["DATE"])
+                                          ["DATE"], individuals[child2]["BIRT"]["DATE"])
                         if (t < 2 or t > 8*30) and t >= 0:
                             results.append([f, child, child2])
     return results
+
+
 for f, child, child2 in siblings_spacing(families, individuals):
-    errors.append(f"ERROR: FAMILY: US13: {f} siblings {child} and {child2} are not born within 2 days or 8 months")
+    errors.append(
+        f"ERROR: FAMILY: US13: {f} siblings {child} and {child2} are not born within 2 days or 8 months")
 #-----------------------------------------------------Sprint 2 end-----------------------------------------------------#
 #-----------------------------------------------------Sprint 3-----------------------------------------------------#
-#Testing for Use Case 29: List Upcoming Anniversaries
-def upcoming_anniversary(family,individuals):
+# Testing for Use Case 29: List Upcoming Anniversaries
+
+
+def upcoming_anniversary(family, individuals):
     families = []
     for fam in list(family.values()):
         anniversary = fam["MARR"]["DATE"].split()
@@ -543,51 +595,67 @@ def upcoming_anniversary(family,individuals):
         datetime_anniversary = datetime(datetime.now().year, int(
             months[anniversary[1]]), int(anniversary[0]))
         if(datetime.today() <= datetime_anniversary and datetime_anniversary <= thirty_days_after):
-            families.append(individuals[fam['HUSB']]['NAME']+' ('+fam['HUSB']+') and ' + individuals[fam['WIFE']]['NAME']+' ('+fam['WIFE']+') ' "in Family "+fam['FAM'])
+            families.append(individuals[fam['HUSB']]['NAME']+' ('+fam['HUSB']+') and ' +
+                            individuals[fam['WIFE']]['NAME']+' ('+fam['WIFE']+') ' "in Family "+fam['FAM'])
     errors.append(
         "US29: List of people who have an upcoming anniversary in the next 30 days: "+str(families))
     return families
+
+
 upcoming_anniversary(families, individuals)
 
-#Testing for Use Case 1:Dates Before Current Date
-def valid_date(families,individuals):
-    notValid=[]
+# Testing for Use Case 1:Dates Before Current Date
+
+
+def valid_date(families, individuals):
+    notValid = []
     for indiv in individuals.keys():
         birthday = individuals[indiv]['BIRT']["DATE"]
         birthday = birthday.split(" ")
-        birthday = datetime(int(birthday[2]), months[birthday[1]], int(birthday[0]))
-        if(birthday>datetime.today()):
-            notValid.append("US01: Birthday of "+individuals[indiv]['NAME']+' ('+individuals[indiv]["id"]+') should not be after current date.')
-        
+        birthday = datetime(
+            int(birthday[2]), months[birthday[1]], int(birthday[0]))
+        if(birthday > datetime.today()):
+            notValid.append("US01: Birthday of "+individuals[indiv]['NAME'] +
+                            ' ('+individuals[indiv]["id"]+') should not be after current date.')
+
         if ("DEAT" in individuals[indiv]):
             deathdate = individuals[indiv]['DEAT']["DATE"]
             deathdate = deathdate.split(" ")
-            deathdate = datetime(int(deathdate[2]), months[deathdate[1]], int(deathdate[0]))
-            if(deathdate>datetime.today()):
-                notValid.append("US01: Death date of "+individuals[indiv]['NAME']+' ('+individuals[indiv]["id"]+') should not be after current date.')
+            deathdate = datetime(
+                int(deathdate[2]), months[deathdate[1]], int(deathdate[0]))
+            if(deathdate > datetime.today()):
+                notValid.append("US01: Death date of "+individuals[indiv]['NAME'] +
+                                ' ('+individuals[indiv]["id"]+') should not be after current date.')
 
     for fam in families:
-        marriage=families[fam]['MARR']['DATE']
-        marriage=marriage.split(" ")
-        marriage = datetime(int(marriage[2]), months[marriage[1]], int(marriage[0]))
-        if(marriage>datetime.today()):
-            notValid.append("US01: Marriage date of "+individuals[families[fam]['HUSB']]['NAME']+' ('+families[fam]['HUSB']+') and ' + individuals[families[fam]['WIFE']]['NAME']+' ('+families[fam]['WIFE']+") in Family "+families[fam]['FAM']+ " should not be after current date.")
+        marriage = families[fam]['MARR']['DATE']
+        marriage = marriage.split(" ")
+        marriage = datetime(
+            int(marriage[2]), months[marriage[1]], int(marriage[0]))
+        if(marriage > datetime.today()):
+            notValid.append("US01: Marriage date of "+individuals[families[fam]['HUSB']]['NAME']+' ('+families[fam]['HUSB']+') and ' +
+                            individuals[families[fam]['WIFE']]['NAME']+' ('+families[fam]['WIFE']+") in Family "+families[fam]['FAM'] + " should not be after current date.")
 
         if("DIV" in fam):
-            divorcedate=fam['DIV']['DATE']
-            divorcedate=divorcedate.split(" ")
-            divorcedate=datetime(int(divorcedate[2]), months[divorcedate[1]], int(divorcedate[0]))
-            if(divorcedate>datetime.today()):
-                notValid.append("US01: Divorce date of "+individuals[families[fam]['HUSB']]['NAME']+' ('+families[fam]['HUSB']+') and ' + individuals[families[fam]['WIFE']]['NAME']+' ('+families[fam]['WIFE']+') ' "in Family "+families[fam]['FAM']+' should not be after current date.')
+            divorcedate = fam['DIV']['DATE']
+            divorcedate = divorcedate.split(" ")
+            divorcedate = datetime(
+                int(divorcedate[2]), months[divorcedate[1]], int(divorcedate[0]))
+            if(divorcedate > datetime.today()):
+                notValid.append("US01: Divorce date of "+individuals[families[fam]['HUSB']]['NAME']+' ('+families[fam]['HUSB']+') and ' + individuals[families[fam]
+                                ['WIFE']]['NAME']+' ('+families[fam]['WIFE']+') ' "in Family "+families[fam]['FAM']+' should not be after current date.')
     return notValid
 
-validDate=valid_date(families,individuals)
+
+validDate = valid_date(families, individuals)
 if len(validDate):
     for i in range(len(validDate)):
         errors.append(validDate[i])
 
 # US 06
 divorceAfterDeathErrors = []
+
+
 def divorceAfterDeath(fam, individuals):
     husbs = []
     wifes = []
@@ -626,10 +694,14 @@ def divorceAfterDeath(fam, individuals):
                         [wife[0], divorce, deathdate, "wife"])
                     return False
     return True
+
+
 divorceAfterDeath(families, individuals)
 
 # US 07
 lessThan150Errors = []
+
+
 def lessThan150YearsOld(individuals):
     res = False
     for indiv in individuals.keys():
@@ -649,6 +721,8 @@ def lessThan150YearsOld(individuals):
                 lessThan150Errors.append([person, birthdate])
                 res = True
     return res
+
+
 lessThan150YearsOld(individuals)
 
 if (len(divorceAfterDeathErrors) > 0):
@@ -667,8 +741,11 @@ if (len(lessThan150Errors) > 0):
             f"ERROR: INDIVIDUAL: US07 : {i[0]} : More than 150 years old - Birth date {i[1]}"
         )
 
+
 # US 16
 # All male members of a family should have the same last name
+
+
 def male_lastname(families, individuals):
     results = []
     for f, details in families.items():
@@ -677,17 +754,23 @@ def male_lastname(families, individuals):
                 # get the last name of the child
                 childLastName = individuals[child]["NAME"].split(" ")[-1]
                 # get the last name of the father
-                fatherLastName = individuals[details["HUSB"]]["NAME"].split(" ")[-1]
+                fatherLastName = individuals[details["HUSB"]]["NAME"].split(
+                    " ")[-1]
                 # if the child is male and father is male and the last names are different
                 if childLastName != fatherLastName and individuals[child]["SEX"] == "M":
                     results.append([f, child])
 
     return results
+
+
 for f, child in male_lastname(families, individuals):
-    errors.append(f"ERROR: FAMILY: US16: {f} child {child} has a different last name than their parents")
+    errors.append(
+        f"ERROR: FAMILY: US16: {f} child {child} has a different last name than their parents")
 
 # US 18
 # Siblings should not marry one another
+
+
 def sibling_marriage(families, individuals):
     results = []
     for f, details in families.items():
@@ -699,10 +782,15 @@ def sibling_marriage(families, individuals):
                             if individuals[child]["FAMS"] == individuals[child2]["FAMS"]:
                                 results.append([f, child, child2])
     return results
-for f, child, child2 in sibling_marriage(families, individuals): 
-    errors.append(f"ERROR: FAMILY: US18: {f} siblings {child} and {child2} are married")
+
+
+for f, child, child2 in sibling_marriage(families, individuals):
+    errors.append(
+        f"ERROR: FAMILY: US18: {f} siblings {child} and {child2} are married")
 
 # Use Case 11: No bigamy (marriage during current marriage)
+
+
 def get_bigamy(families, individuals):
     married_pairs = {}
     for id, info in families.items():
@@ -730,12 +818,16 @@ def get_bigamy(families, individuals):
                         bigamy_pairs.append(
                             [partners[p][0], partners[other_p][0]])
     return bigamy_pairs
+
+
 bigamy_pairs = get_bigamy(families, individuals)
 if len(bigamy_pairs):
     errors.append(
         f"ERROR: FAMILY: US11: Bigamy between pairs {' '.join(bigamy_pairs)} ")
 
 # Use case 33: List Orphens (both parents dead < 18 years old)
+
+
 def get_orphens(families, individuals):
     orphens = []
     for id, info in families.items():
@@ -746,12 +838,16 @@ def get_orphens(families, individuals):
                     orphens.append(c)
 
     return orphens
+
+
 orphens = get_orphens(families, individuals)
 if len(orphens):
     errors.append(f"US33: List of all orphens: {', '.join(orphens)}")
 #-----------------------------------------------------Sprint 3 end-----------------------------------------------------#
 #-----------------------------------------------------Sprint 4-----------------------------------------------------#
 # Use case 14: Multiple births <= 5 (No more than five siblings should be born at the same time)
+
+
 def multiple_births(families, individuals):
     results = []
     for id, info in families.items():
@@ -759,34 +855,98 @@ def multiple_births(families, individuals):
         if "CHIL" in info:
             for c in info["CHIL"]:
                 if individuals[c]["BIRT"]["DATE"] in birthtimes:
-                    birthtimes[individuals[c]["BIRT"]["DATE"]] += 1  
+                    birthtimes[individuals[c]["BIRT"]["DATE"]] += 1
                 else:
                     birthtimes[individuals[c]["BIRT"]["DATE"]] = 1
-        
+
         for d, births in birthtimes.items():
             if births > 5:
                 results.append([id, d, births])
     return results
 
+
 tooManyBirths = multiple_births(families, individuals)
 for fam, d, births in tooManyBirths:
-        errors.append(f"ERROR: FAMILY: US14: FAM {fam} has too many births on {d} births: {births}")
+    errors.append(
+        f"ERROR: FAMILY: US14: FAM {fam} has too many births on {d} births: {births}")
 
 # Use case 15: There should be fewer than 15 siblings in a family
+
+
 def maxSiblings(families):
-    return  [f for f, details in families.items() if len(details["CHIL"]) >= 15]
+    return [f for f, details in families.items() if len(details["CHIL"]) >= 15]
+
 
 for fam in maxSiblings(families):
     errors.append(f"ERROR: FAMILY: US15: FAM {fam} has 15 or more siblings")
 
+
+# US22
+
+uniqueNameAndBirthdateErrors = []
+
+
+def uniqueNameAndBirthdate(indiv):
+    namesAndBirthdates = []
+    returnValue = False
+    for i in indiv:
+        namesAndBirthdates.append([indiv[i]['NAME'], indiv[i]['DATE']])
+
+    for i in range(0, len(namesAndBirthdates)):
+        num = 0
+        for j in indiv:
+
+            if (namesAndBirthdates[i] == [indiv[j]['NAME'], indiv[j]['DATE']]):
+                num += 1
+                if (num > 1):
+
+                    uniqueNameAndBirthdateErrors.append(
+                        [namesAndBirthdates[i]])
+                    returnValue = True
+    return returnValue
+
+
+uniqueNameAndBirthdate(individuals)
+if (len(uniqueNameAndBirthdateErrors) > 0):
+    for i in uniqueNameAndBirthdateErrors:
+        errors.append(
+            f"ERROR: INDIVIDUAL: US23 : {i[0]} : Duplicated in GEDCOM file"
+        )
+
+# US37
+
+
+def list_recentSurvivors(families, individuals):
+    orphens = []
+    for id, info in individuals.items():
+        # Checks if individual is deceased
+        if ('DEAT' in individuals[info['id']]):
+            family = individuals[id]['FAMS']
+            for id1, infos, in individuals.items():
+                if (individuals[id1]['id'] == id):
+                    continue
+                else:
+                    try:
+                        if (individuals[id1]['FAMC'] == family):
+                            orphens.append(individuals[id1]['NAME'])
+                    except:
+                        try:
+                            if (individuals[id1]['FAMS'] == family):
+                                orphens.append(individuals[id1]['NAME'])
+                        except:
+                            continue
+
+    return orphens
+
+
+recentSurvivors = list_recentSurvivors(families, individuals)
+print("RECENT SURVIVORS:", recentSurvivors)
+
+if len(recentSurvivors):
+    errors.append(
+        f"US37: List of all recent survivors: {', '.join(recentSurvivors)}")
+
 #-----------------------------------------------------Sprint 4 end-----------------------------------------------------#
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
@@ -796,7 +956,7 @@ if __name__ == '__main__':
     print(fTable)
     # Print errors
     print()
-    #Sort errors by user story
-    errors.sort(key=lambda x:int(x[x.find("US")+2:x.find("US")+4]))
+    # Sort errors by user story
+    errors.sort(key=lambda x: int(x[x.find("US")+2:x.find("US")+4]))
     for error in errors:
         print(error)

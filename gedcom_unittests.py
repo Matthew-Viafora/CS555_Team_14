@@ -316,6 +316,7 @@ class TestGedcom(unittest.TestCase):
                        '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, "DEAT": {"DATE": "10 JAN 2000"}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}}
         result = gedcom_project.lessThan150YearsOld(individuals)
         self.assertEqual(result, True)
+    
 
     # User story 16: All male members of a family should have the same last name
     def test_male_lastname(self):
@@ -409,6 +410,25 @@ class TestGedcom(unittest.TestCase):
             families['@F1@']["CHIL"].append(f'@I{5+i}')
         result = gedcom_project.maxSiblings(families)
         self.assertEqual(result, ['@F1@'])
+    
+    #Use Case 30: List living married
+    def test_living_married(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2002'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'}, '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}, '@I5@': {
+            'id': '@I5@', 'INDI': '@I5@', 'NAME': 'Bob /Matthews/', 'SEX': 'M', 'BIRT': {'DATE': '4 JUL 1954'}, 'DATE': '10 MAY 1969', 'DEAT': {'DATE': '19 SEP 2022'}, 'FAMS': '@F2@'}, '@I6@': {'id': '@I6@', 'INDI': '@I6@', 'NAME': 'Rose /Viafora/', 'SEX': 'F', 'BIRT': {'DATE': '9 SEP 1933'}, 'DATE': '9 SEP 1933', 'FAMS': '@F3@'}, '@I7@': {'id': '@I7@', 'INDI': '@I7@', 'NAME': 'Jimothy /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '6 FEB 1950'}, 'DATE': '16 APR 2015', 'DEAT': {'DATE': '8 OCT 2022'}, 'FAMS': '@F3@'}, '@I8@': {'id': '@I8@', 'INDI': '@I8@', 'NAME': 'Elise /Domingo/', 'SEX': 'F', 'BIRT': {'DATE': '8 SEP 1970'}, 'DATE': '8 SEP 1970', 'FAMC': '@F3@', 'FAM': '@F1@'}}
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}, '@F2@': {'id': '@F2@', 'FAM': '@F2@', 'HUSB': '@I5@', 'WIFE': '@I6@', 'CHIL': [
+            '@I3@'], 'MARR': {'DATE': '4 JUL 2050'}, 'DATE': '6 MAR 1969', 'DIV': {'DATE': '6 MAR 1969'}}, '@F3@': {'id': '@F3@', 'FAM': '@F3@', 'HUSB': '@I7@', 'WIFE': '@I6@', 'CHIL': ['@I8@'], 'MARR': {'DATE': '7 JUL 1970'}, 'DATE': '7 JUL 1970', 'TRLR': ''}}
+        result=gedcom_project.living_married(families,individuals)
+        self.assertEqual(result,['George /Smith/ (@I2@) in Family @F1@','Karen /Domingo/ (@I3@) in Family @F1@','Rose /Viafora/ (@I6@) in Family @F3@'])
+
+    #Use Case 42: Reject Illegitimate Dates
+    def test_illegitimate_date(self):
+        individuals = {'@I1@': {'id': '@I1@', 'INDI': '@I1@', 'NAME': 'Gabriela /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '12 OCT 2002'}, 'DATE': '12 OCT 2002', 'FAMC': '@F1@'}, '@I2@': {'id': '@I2@', 'INDI': '@I2@', 'NAME': 'George /Smith/', 'SEX': 'F', 'BIRT': {'DATE': '7 MAR 1958'}, 'DATE': '7 MAR 1958', 'FAMS': '@F1@'}, '@I3@': {'id': '@I3@', 'INDI': '@I3@', 'NAME': 'Karen /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '15 OCT 1965'}, 'DATE': '15 OCT 1965', 'FAMS': '@F1@', 'FAMC': '@F2@'}, '@I4@': {'id': '@I4@', 'INDI': '@I4@', 'NAME': 'Matthew /Smith/', 'SEX': 'M', 'BIRT': {'DATE': '31 JUL 2001'}, 'DATE': '31 JUL 2001', 'FAMC': '@F1@'}, '@I5@': {
+            'id': '@I5@', 'INDI': '@I5@', 'NAME': 'Bob /Matthews/', 'SEX': 'M', 'BIRT': {'DATE': '74 JUL 1954'}, 'DATE': '10 MAY 1969', 'DEAT': {'DATE': '19 SEP 2022'}, 'FAMS': '@F2@'}, '@I6@': {'id': '@I6@', 'INDI': '@I6@', 'NAME': 'Rose /Viafora/', 'SEX': 'F', 'BIRT': {'DATE': '9 SEP 1933'}, 'DATE': '9 SEP 1933', 'FAMS': '@F3@'}, '@I7@': {'id': '@I7@', 'INDI': '@I7@', 'NAME': 'Jimothy /Domingo/', 'SEX': 'M', 'BIRT': {'DATE': '6 FEB 1950'}, 'DATE': '16 APR 2015', 'DEAT': {'DATE': '8 OCT 2022'}, 'FAMS': '@F3@'}, '@I8@': {'id': '@I8@', 'INDI': '@I8@', 'NAME': 'Elise /Domingo/', 'SEX': 'F', 'BIRT': {'DATE': '8 SEP 1970'}, 'DATE': '8 SEP 1970', 'FAMC': '@F3@', 'FAM': '@F1@'}}
+        families = {'@F1@': {'id': '@F1@', 'FAM': '@F1@', 'HUSB': '@I2@', 'WIFE': '@I3@', 'CHIL': ['@I1@', '@I4@'], 'MARR': {'DATE': '6 MAY 1986'}, 'DATE': '6 MAY 1986'}, '@F2@': {'id': '@F2@', 'FAM': '@F2@', 'HUSB': '@I5@', 'WIFE': '@I6@', 'CHIL': [
+            '@I3@'], 'MARR': {'DATE': '34 JUL 2050'}, 'DATE': '6 MAR 1969', 'DIV': {'DATE': '6 MAR 1969'}}, '@F3@': {'id': '@F3@', 'FAM': '@F3@', 'HUSB': '@I7@', 'WIFE': '@I6@', 'CHIL': ['@I8@'], 'MARR': {'DATE': '7 JUL 1970'}, 'DATE': '7 JUL 1970', 'TRLR': ''}}
+        result=gedcom_project.illegitimate_date(families,individuals)
+        self.assertEqual(result,['US42: Birthday of Bob /Matthews/ (@I5@) is not a valid date','US42: Marriage date of Bob /Matthews/ (@I5@) and Rose /Viafora/ (@I6@) in Family @F2@ is not valid.'])
+
 
 if __name__ == '__main__':
     unittest.main()

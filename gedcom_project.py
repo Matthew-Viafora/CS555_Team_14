@@ -877,6 +877,107 @@ def maxSiblings(families):
     return [f for f, details in families.items() if len(details["CHIL"]) >= 15]
 
 
+#Use Case 30
+def living_married(families,individuals):
+    married=[]
+    for fam in families:
+        if("DIV" not in families[fam]):
+            husband=individuals[families[fam]['HUSB']]
+            wife=individuals[families[fam]['WIFE']]
+            if("DEAT" not in husband):
+                married.append(individuals[families[fam]['HUSB']]['NAME']+' ('+families[fam]['HUSB']+') ' + "in Family "+families[fam]['FAM'])
+            if("DEAT" not in wife):
+                married.append(individuals[families[fam]['WIFE']]['NAME']+' ('+families[fam]['WIFE']+') ' + "in Family "+families[fam]['FAM'])
+    
+    errors.append(
+        "US35: List of people who are married and still alive: "+str(married))
+
+    return married
+
+
+#Use Case 42
+validDate={
+    "1":31,
+    "2":28,
+    "3":31,
+    "4":30,
+    "5":31,
+    "6":30,
+    "7":31,
+    "8":31,
+    "9":30,
+    "10":31,
+    "11":30,
+    "12":31
+}
+notValidDate = []
+
+def check_date(year,month,day,date,key):
+    if(month=="2" and int(year)%4==0):
+            if(day>29):
+                if(date=="Marriage date" or date=="Divorce date"):
+                    notValidDate.append("US42: "+date+" of "+individuals[families[key]['HUSB']]['NAME']+' ('+families[key]['HUSB']+') and ' +
+                            individuals[families[key]['WIFE']]['NAME']+' ('+families[key]['WIFE']+") in Family "+families[key]['FAM'] + " is not valid.")
+                else:
+                    notValidDate.append("US42: "+date+" of "+individuals[key]['NAME'] +
+                            ' ('+individuals[key]["id"]+') is not a valid date')  
+    else:
+        if(int(day)>validDate[month]):
+            if(date=="Marriage date" or date=="Divorce date"):
+                notValidDate.append("US42: "+date+" of "+individuals[families[key]['HUSB']]['NAME']+' ('+families[key]['HUSB']+') and ' +
+                            individuals[families[key]['WIFE']]['NAME']+' ('+families[key]['WIFE']+") in Family "+families[key]['FAM'] + " is not valid.")
+            else:
+                notValidDate.append("US42: "+date+" of "+individuals[key]['NAME'] +
+                        ' ('+individuals[key]["id"]+') is not a valid date')  
+
+def illegitimate_date(families,individuals):
+    for indiv in individuals.keys():
+        birthday = individuals[indiv]['BIRT']["DATE"]
+        birthday = birthday.split(" ")
+        yearBirth=birthday[2]
+        monthBirth=str(months[birthday[1]])
+        dayBirth=birthday[0]
+        check_date(yearBirth,monthBirth,dayBirth,"Birthday",indiv)
+
+        if ("DEAT" in individuals[indiv]):
+            deathdate = individuals[indiv]['DEAT']["DATE"]
+            deathdate = deathdate.split(" ")
+            yearDeath=deathdate[2]
+            monthDeath=str(months[deathdate[1]])
+            dayDeath=deathdate[0]
+            check_date(yearDeath,monthDeath,dayDeath,"Death date",indiv)
+            
+        
+        
+
+    for fam in families:
+        marriage = families[fam]['MARR']['DATE']
+        marriage = marriage.split(" ")
+        yearMarriage=marriage[2]
+        monthMarriage=str(months[marriage[1]])
+        dayMarriage=marriage[0]
+        check_date(yearMarriage,monthMarriage,dayMarriage,"Marriage date",fam)
+        
+        if("DIV" in fam):
+            divorcedate = fam['DIV']['DATE']
+            divorcedate = divorcedate.split(" ")
+            yearDivorce=divorcedate[2]
+            monthDivorce=str(months[divorcedate[1]])
+            dayDivorce=divorcedate[0]
+            check_date(yearDivorce,monthDivorce,dayDivorce,"Divorce date",fam)
+
+    return notValidDate
+
+illegitimateDate = illegitimate_date(families, individuals)
+if len(illegitimateDate):
+    for i in range(len(illegitimateDate)):
+        errors.append(illegitimateDate[i])
+
+
+
+iTable.add_column("Age", list(
+    map(lambda indiv: calculateAge(indiv), [*individuals.values()])))
+
 for fam in maxSiblings(families):
     errors.append(f"ERROR: FAMILY: US15: FAM {fam} has 15 or more siblings")
 
@@ -940,7 +1041,7 @@ def list_recentSurvivors(families, individuals):
 
 
 recentSurvivors = list_recentSurvivors(families, individuals)
-print("RECENT SURVIVORS:", recentSurvivors)
+#print("RECENT SURVIVORS:", recentSurvivors)
 
 if len(recentSurvivors):
     errors.append(

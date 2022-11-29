@@ -397,6 +397,33 @@ for f, details in families.items():
         errors.append(
             f"ERROR: FAMILY: US09: {f} birth of child after death of parents")
 
+    # US 19
+    # First cousins should not marry one another
+    if "CHIL" in details:
+        for child in details["CHIL"]:
+            if "FAMC" in individuals[child]:
+                if "CHIL" in families[individuals[child]["FAMC"]]:
+                    for child2 in families[individuals[child]["FAMC"]]["CHIL"]:
+                        if child != child2:
+                            if "FAMS" in individuals[child] and "FAMS" in individuals[child2]:
+                                if individuals[child]["FAMS"] == individuals[child2]["FAMS"]:
+                                    errors.append(
+                                        f"ERROR: FAMILY: US19: {f} first cousins {child} and {child2} are married")
+
+    # US 20
+    # Aunts and uncles should not marry their nieces or nephews
+    if "CHIL" in details:
+        for child in details["CHIL"]:
+            if "FAMC" in individuals[child]:
+                if "CHIL" in families[individuals[child]["FAMC"]]:
+                    for child2 in families[individuals[child]["FAMC"]]["CHIL"]:
+                        if child != child2:
+                            if "FAMS" in individuals[child] and "FAMS" in individuals[child2]:
+                                if individuals[child]["FAMS"] == individuals[child2]["FAMS"]:
+                                    errors.append(
+                                        f"ERROR: FAMILY: US20: {f} aunts and uncles {child} and {child2} are married")
+
+
 #-----------------------------------------------------Sprint 1 end-----------------------------------------------------#
 #-----------------------------------------------------Sprint 2-----------------------------------------------------#
 
